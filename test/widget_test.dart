@@ -1,30 +1,85 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:gyan_hub/main.dart';
+import 'package:gyan_hub/core/format.dart';
+import 'package:gyan_hub/core/models/models.dart';
+import 'package:gyan_hub/core/theme/app_theme.dart';
+import 'package:gyan_hub/shared/widgets/common.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('formatting', () {
+    test('inr formats rupees and treats zero/null as Free', () {
+      expect(inr('650.00'), '₹650');
+      expect(inr(0), 'Free');
+      expect(inr(null), 'Free');
+      expect(inr('not-a-number'), '—');
+    });
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  group('models', () {
+    test('Listing parses the backend shape (decimal strings, embeds)', () {
+      final listing = Listing.fromJson({
+        'id': 'abc-123',
+        'title': 'NCERT Science Class 8',
+        'price': '210.00',
+        'originalPrice': '380.00',
+        'condition': 'like_new',
+        'listingType': 'sale',
+        'status': 'approved',
+        'images': ['https://example.com/a.jpg'],
+        'isFeatured': true,
+        'viewCount': 7,
+        'category': {'id': 'c1', 'name': 'Old Books', 'slug': 'old-books'},
+        'createdAt': '2026-07-01T20:53:11.316Z',
+      });
+      expect(listing.priceValue, 210.0);
+      expect(listing.hasDiscount, isTrue);
+      expect(listing.category?.slug, 'old-books');
+      // Round-trips for the guest-cart snapshot.
+      final copy = Listing.fromJson(listing.toJson());
+      expect(copy.title, listing.title);
+      expect(copy.images, listing.images);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('Pagination parses and OrderItem knows cancellable states', () {
+      final pagination = Pagination.fromJson({
+        'total': 15,
+        'page': 1,
+        'limit': 12,
+        'totalPages': 2,
+        'hasNext': true,
+        'hasPrev': false,
+      });
+      expect(pagination.hasNext, isTrue);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      final item = OrderItem.fromJson(
+          {'id': 'i1', 'status': 'packed', 'finalAmount': '90.00'});
+      expect(item.cancellable, isTrue);
+      final delivered = OrderItem.fromJson(
+          {'id': 'i2', 'status': 'delivered', 'finalAmount': '90.00'});
+      expect(delivered.cancellable, isFalse);
+    });
+  });
+
+  testWidgets('theme is light and EmptyState renders its CTA',
+      (tester) async {
+    var tapped = false;
+    final theme = buildAppTheme();
+    expect(theme.brightness, Brightness.light);
+
+    await tester.pumpWidget(MaterialApp(
+      theme: theme,
+      home: Scaffold(
+        body: EmptyState(
+          title: 'Your cart is empty',
+          body: 'Grab something great!',
+          ctaLabel: 'Start shopping',
+          onCta: () => tapped = true,
+        ),
+      ),
+    ));
+
+    expect(find.text('Your cart is empty'), findsOneWidget);
+    await tester.tap(find.text('Start shopping'));
+    expect(tapped, isTrue);
   });
 }
