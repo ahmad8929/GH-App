@@ -44,6 +44,22 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/logo.png
+
+# Generates android/ios/web launcher icons from the brand logo.
+# Run once after changing the source image: `dart run flutter_launcher_icons`.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "image.png"
+  min_sdk_android: 21
+  web:
+    generate: true
+    image_path: "image.png"
+    background_color: "#ffffff"
+    theme_color: "#1e56a0"

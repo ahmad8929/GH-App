@@ -96,6 +96,10 @@ class ProfileApi {
     final res = await _client.post('/profile/me/avatar', form: form);
     return (res['data'] as Map<String, dynamic>)['avatar'] as String;
   }
+
+  /// themeId: null resets to the default look. Server validates active themes only.
+  Future<void> selectTheme(String? themeId) =>
+      _client.patch('/profile/me/theme', body: {'themeId': themeId});
 }
 
 class ListingsApi {
@@ -301,6 +305,92 @@ class AdsApi {
     } on ApiException {
       // metrics are best-effort
     }
+  }
+}
+
+/// Advertiser opt-in, ad plan purchase, and ad-creative submission — distinct
+/// from [AdsApi] above, which only serves/tracks already-live ad creatives.
+class AdvertiseApi {
+  AdvertiseApi(this._client);
+  final ApiClient _client;
+
+  Future<List<AdPlan>> plans() async {
+    final res = await _client.get('/ad-plans');
+    return (res['data'] as List? ?? [])
+        .map((e) => AdPlan.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> optIn() =>
+      _client.patch('/profile/me', body: {'isAdvertiser': true});
+
+  /// One plan can be bought at most once per user, ever (enforced server-side).
+  Future<String> subscribe(String planId) async {
+    final res =
+        await _client.post('/ad-subscriptions', body: {'planId': planId});
+    return (res['data'] as Map<String, dynamic>)['id'] as String;
+  }
+
+  Future<List<AdSubscription>> mySubscriptions() async {
+    final res = await _client.get('/ad-subscriptions/mine');
+    return (res['data'] as List? ?? [])
+        .map((e) => AdSubscription.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Submits (or resubmits, after a rejection) the ad creative for a
+  /// subscription. [image] is required for a first submission; on resubmit it
+  /// may be omitted to keep the existing creative image.
+  Future<AdSubmission> createAd({
+    required String subscriptionId,
+    required String title,
+    String? businessName,
+    String? description,
+    String? targetUrl,
+    String? contactPhone,
+    String? contactEmail,
+    XFile? image,
+  }) async {
+    final form = FormData.fromMap({
+      'subscriptionId': subscriptionId,
+      'title': title,
+      if (businessName != null && businessName.isNotEmpty)
+        'businessName': businessName,
+      if (description != null && description.isNotEmpty)
+        'description': description,
+      if (targetUrl != null && targetUrl.isNotEmpty) 'targetUrl': targetUrl,
+      if (contactPhone != null && contactPhone.isNotEmpty)
+        'contactPhone': contactPhone,
+      if (contactEmail != null && contactEmail.isNotEmpty)
+        'contactEmail': contactEmail,
+    });
+    if (image != null) {
+      form.files.add(MapEntry(
+        'image',
+        await MultipartFile.fromFile(image.path, filename: image.name),
+      ));
+    }
+    final res = await _client.post('/ads', form: form);
+    return AdSubmission.fromJson(res['data'] as Map<String, dynamic>);
+  }
+
+  Future<List<AdSubmission>> myAds() async {
+    final res = await _client.get('/ads/mine');
+    return (res['data'] as List? ?? [])
+        .map((e) => AdSubmission.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+}
+
+class ThemesApi {
+  ThemesApi(this._client);
+  final ApiClient _client;
+
+  Future<List<ThemeOption>> list() async {
+    final res = await _client.get('/themes');
+    return (res['data'] as List? ?? [])
+        .map((e) => ThemeOption.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }
 

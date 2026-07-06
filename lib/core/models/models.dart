@@ -193,14 +193,74 @@ class AuthSession {
   });
 }
 
+/// A named color set an admin created (Admin → Themes). Named `ThemeOption`,
+/// not `Theme`, to avoid clashing with `material.dart`'s `Theme` widget.
+class ThemeOption {
+  final String id;
+  final String name;
+  final String primaryColor;
+  final String secondaryColor;
+  final String backgroundColor;
+  final String textColor;
+  final String headingColor;
+  final String buttonBackground;
+  final String buttonText;
+  final String borderColor;
+  final String navbarColor;
+  final String footerColor;
+  final bool isActive;
+
+  const ThemeOption({
+    required this.id,
+    required this.name,
+    required this.primaryColor,
+    required this.secondaryColor,
+    required this.backgroundColor,
+    required this.textColor,
+    required this.headingColor,
+    required this.buttonBackground,
+    required this.buttonText,
+    required this.borderColor,
+    required this.navbarColor,
+    required this.footerColor,
+    required this.isActive,
+  });
+
+  factory ThemeOption.fromJson(Map<String, dynamic> json) => ThemeOption(
+        id: json['id'] as String,
+        name: (json['name'] ?? '') as String,
+        primaryColor: (json['primaryColor'] ?? '#1e56a0') as String,
+        secondaryColor: (json['secondaryColor'] ?? '#2f74c0') as String,
+        backgroundColor: (json['backgroundColor'] ?? '#f6f6f6') as String,
+        textColor: (json['textColor'] ?? '#5c6f88') as String,
+        headingColor: (json['headingColor'] ?? '#163172') as String,
+        buttonBackground: (json['buttonBackground'] ?? '#1e56a0') as String,
+        buttonText: (json['buttonText'] ?? '#ffffff') as String,
+        borderColor: (json['borderColor'] ?? '#d6e4f0') as String,
+        navbarColor: (json['navbarColor'] ?? '#f6f6f6') as String,
+        footerColor: (json['footerColor'] ?? '#163172') as String,
+        isActive: json['isActive'] == true,
+      );
+}
+
 class Profile {
   final String? bio;
   final String? phone;
   final String? address;
   final String? city;
   final String? avatar;
+  final bool isAdvertiser;
+  final ThemeOption? theme;
 
-  const Profile({this.bio, this.phone, this.address, this.city, this.avatar});
+  const Profile({
+    this.bio,
+    this.phone,
+    this.address,
+    this.city,
+    this.avatar,
+    this.isAdvertiser = false,
+    this.theme,
+  });
 
   factory Profile.fromJson(Map<String, dynamic> json) => Profile(
         bio: _s(json['bio']),
@@ -208,6 +268,10 @@ class Profile {
         address: _s(json['address']),
         city: _s(json['city']),
         avatar: _s(json['avatar']),
+        isAdvertiser: json['isAdvertiser'] == true,
+        theme: json['theme'] is Map<String, dynamic>
+            ? ThemeOption.fromJson(json['theme'] as Map<String, dynamic>)
+            : null,
       );
 }
 
@@ -466,6 +530,126 @@ class AdCreative {
         id: json['id'] as String,
         image: (json['image'] ?? '') as String,
         targetUrl: (json['targetUrl'] ?? '#') as String,
+      );
+}
+
+/// A purchasable advertising plan (Admin → Ad Plans).
+class AdPlan {
+  final String id;
+  final String name;
+  final double price;
+  final int durationDays;
+  final String? description;
+
+  const AdPlan({
+    required this.id,
+    required this.name,
+    required this.price,
+    required this.durationDays,
+    this.description,
+  });
+
+  factory AdPlan.fromJson(Map<String, dynamic> json) => AdPlan(
+        id: json['id'] as String,
+        name: (json['name'] ?? '') as String,
+        price: _d(json['price']),
+        durationDays: _i(json['durationDays']),
+        description: _s(json['description']),
+      );
+}
+
+/// The advertiser's submitted ad creative, pending/approved/rejected by admin.
+class AdSubmission {
+  final String id;
+  final String? businessName;
+  final String title;
+  final String? description;
+  final String image;
+  final String? link;
+  final String position;
+  final String? contactPhone;
+  final String? contactEmail;
+  final String status; // pending | approved | rejected
+  final String? rejectionReason;
+  final String subscriptionId;
+  final DateTime? createdAt;
+
+  const AdSubmission({
+    required this.id,
+    this.businessName,
+    required this.title,
+    this.description,
+    required this.image,
+    this.link,
+    required this.position,
+    this.contactPhone,
+    this.contactEmail,
+    required this.status,
+    this.rejectionReason,
+    required this.subscriptionId,
+    this.createdAt,
+  });
+
+  factory AdSubmission.fromJson(Map<String, dynamic> json) => AdSubmission(
+        id: json['id'] as String,
+        businessName: _s(json['businessName']),
+        title: (json['title'] ?? '') as String,
+        description: _s(json['description']),
+        image: (json['image'] ?? '') as String,
+        link: _s(json['link']),
+        position: (json['position'] ?? 'home_top') as String,
+        contactPhone: _s(json['contactPhone']),
+        contactEmail: _s(json['contactEmail']),
+        status: (json['status'] ?? 'pending') as String,
+        rejectionReason: _s(json['rejectionReason']),
+        subscriptionId: (json['subscriptionId'] ?? '') as String,
+        createdAt: DateTime.tryParse(_s(json['createdAt']) ?? ''),
+      );
+}
+
+/// A user's purchase of an [AdPlan] — one per plan, ever. Carries the
+/// resulting [AdSubmission] once the advertiser has submitted a creative.
+class AdSubscription {
+  final String id;
+  final String planId;
+  final String status; // pending | active | cancelled | expired
+  final double? amountPaid;
+  final DateTime? startsAt;
+  final DateTime? endsAt;
+  final DateTime? createdAt;
+  final AdPlan? plan;
+  final AdSubmission? ad;
+
+  const AdSubscription({
+    required this.id,
+    required this.planId,
+    required this.status,
+    this.amountPaid,
+    this.startsAt,
+    this.endsAt,
+    this.createdAt,
+    this.plan,
+    this.ad,
+  });
+
+  factory AdSubscription.fromJson(Map<String, dynamic> json) => AdSubscription(
+        id: json['id'] as String,
+        planId: (json['planId'] ?? '') as String,
+        status: (json['status'] ?? 'pending') as String,
+        amountPaid: json['amountPaid'] == null ? null : _d(json['amountPaid']),
+        startsAt: json['startsAt'] == null
+            ? null
+            : DateTime.tryParse(_s(json['startsAt']) ?? ''),
+        endsAt: json['endsAt'] == null
+            ? null
+            : DateTime.tryParse(_s(json['endsAt']) ?? ''),
+        createdAt: DateTime.tryParse(_s(json['createdAt']) ?? ''),
+        plan: json['plan'] is Map<String, dynamic>
+            ? AdPlan.fromJson(json['plan'] as Map<String, dynamic>)
+            : null,
+        ad: json['ad'] is Map<String, dynamic>
+            ? AdSubmission.fromJson(json['ad'] as Map<String, dynamic>)
+            : null,
       );
 }
 

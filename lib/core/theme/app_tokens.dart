@@ -46,4 +46,15 @@ class AppTokens {
           offset: const Offset(0, 8),
         ),
       ];
+
+  /// Parses "#rgb" or "#rrggbb" (both valid per the backend's Theme model
+  /// validation) into a [Color].
+  static Color hexToColor(String hex) {
+    var h = hex.replaceFirst('#', '');
+    if (h.length == 3) {
+      h = h.split('').map((c) => '$c$c').join();
+    }
+    final value = int.tryParse(h, radix: 16) ?? 0x1E56A0;
+    return Color(0xFF000000 | value);
+  }
 }

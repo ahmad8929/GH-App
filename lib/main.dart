@@ -7,6 +7,7 @@ import 'core/storage/token_store.dart';
 import 'core/theme/app_theme.dart';
 import 'router.dart';
 import 'state/providers.dart';
+import 'state/theme_state.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,22 +28,23 @@ Future<void> main() async {
   ));
 }
 
-class GyanHubApp extends StatefulWidget {
+class GyanHubApp extends ConsumerStatefulWidget {
   const GyanHubApp({super.key});
 
   @override
-  State<GyanHubApp> createState() => _GyanHubAppState();
+  ConsumerState<GyanHubApp> createState() => _GyanHubAppState();
 }
 
-class _GyanHubAppState extends State<GyanHubApp> {
+class _GyanHubAppState extends ConsumerState<GyanHubApp> {
   late final router = buildRouter();
 
   @override
   Widget build(BuildContext context) {
+    final theme = ref.watch(selectedThemeProvider).asData?.value;
     return MaterialApp.router(
       title: 'Gyan Hub',
       debugShowCheckedModeBanner: false,
-      theme: buildAppTheme(),
+      theme: buildAppTheme(theme),
       routerConfig: router,
     );
   }

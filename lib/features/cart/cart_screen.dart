@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/format.dart';
 import '../../core/theme/app_tokens.dart';
+import '../../shared/widgets/ad_banner.dart';
 import '../../shared/widgets/common.dart';
 import '../../state/auth_state.dart';
 import '../../state/cart_state.dart';
@@ -80,6 +81,11 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 )
               : Column(
                   children: [
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(
+                          AppTokens.s4, AppTokens.s3, AppTokens.s4, 0),
+                      child: AdBanner(placement: 'cart'),
+                    ),
                     Expanded(
                       child: ListView.separated(
                         padding: const EdgeInsets.all(AppTokens.s4),

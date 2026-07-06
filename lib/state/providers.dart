@@ -34,6 +34,10 @@ final favoritesApiProvider =
 final sellbackApiProvider =
     Provider((ref) => SellbackApi(ref.watch(apiClientProvider)));
 final adsApiProvider = Provider((ref) => AdsApi(ref.watch(apiClientProvider)));
+final advertiseApiProvider =
+    Provider((ref) => AdvertiseApi(ref.watch(apiClientProvider)));
+final themesApiProvider =
+    Provider((ref) => ThemesApi(ref.watch(apiClientProvider)));
 final blogsApiProvider =
     Provider((ref) => BlogsApi(ref.watch(apiClientProvider)));
 final notebooksApiProvider =

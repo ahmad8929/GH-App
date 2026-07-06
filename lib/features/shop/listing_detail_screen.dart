@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/format.dart';
 import '../../core/models/models.dart';
 import '../../core/theme/app_tokens.dart';
+import '../../shared/widgets/ad_banner.dart';
 import '../../shared/widgets/common.dart';
 import '../../shared/widgets/listing_card.dart';
 import '../../state/cart_state.dart';
@@ -169,24 +170,19 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
               const SizedBox(height: AppTokens.s4),
               Card(
                 child: ListTile(
-                  leading: Container(
-                    width: 40,
-                    height: 40,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: AppTokens.primary,
-                      borderRadius: AppTokens.brSm,
-                    ),
-                    child: const Text('G',
-                        style: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.bold)),
+                  leading: ClipRRect(
+                    borderRadius: AppTokens.brSm,
+                    child: Image.asset('assets/images/logo.png',
+                        width: 40, height: 40, fit: BoxFit.cover),
                   ),
                   title: const Text('Sold by Gyan Hub'),
                   subtitle: const Text(
                       'Checked, approved, and delivered by our team.'),
                 ),
               ),
-              const SizedBox(height: AppTokens.s5),
+              const SizedBox(height: AppTokens.s4),
+              const AdBanner(placement: 'listing_detail'),
+              const SizedBox(height: AppTokens.s2),
               if (sold)
                 const FilledButton(onPressed: null, child: Text('Sold out'))
               else if (inCart)

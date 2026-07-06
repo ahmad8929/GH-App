@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_tokens.dart';
+import '../../shared/widgets/ad_banner.dart';
 import '../../shared/widgets/common.dart';
 import '../../state/auth_state.dart';
 
@@ -70,13 +71,16 @@ class AccountScreen extends ConsumerWidget {
               trailing: const Icon(Icons.edit_outlined),
             ),
           ),
-          const SizedBox(height: AppTokens.s4),
+          const SizedBox(height: AppTokens.s3),
+          const AdBanner(placement: 'account'),
+          const SizedBox(height: AppTokens.s2),
           ...[
             (Icons.receipt_long_outlined, 'My orders', '/orders'),
             (Icons.volunteer_activism_outlined, 'My submissions', '/sell'),
             (Icons.favorite_outline, 'Favorites', '/favorites'),
             (Icons.notifications_outlined, 'Notifications', '/notifications'),
             (Icons.campaign_outlined, 'Advertise with us', '/advertise'),
+            (Icons.palette_outlined, 'Theme', '/theme'),
             (Icons.article_outlined, 'Blog', '/blogs'),
           ].map((entry) => Card(
                 margin: const EdgeInsets.only(bottom: AppTokens.s2),

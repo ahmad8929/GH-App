@@ -59,17 +59,14 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Row(
           children: [
-            Container(
-              width: 32,
-              height: 32,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: AppTokens.primary,
-                borderRadius: AppTokens.brSm,
+            ClipRRect(
+              borderRadius: AppTokens.brSm,
+              child: Image.asset(
+                'assets/images/logo.png',
+                width: 32,
+                height: 32,
+                fit: BoxFit.cover,
               ),
-              child: const Text('G',
-                  style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold)),
             ),
             const SizedBox(width: AppTokens.s2),
             const Text('Gyan Hub'),

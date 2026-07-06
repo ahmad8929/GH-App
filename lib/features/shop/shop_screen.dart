@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/format.dart';
 import '../../core/models/models.dart';
 import '../../core/theme/app_tokens.dart';
+import '../../shared/widgets/ad_banner.dart';
 import '../../shared/widgets/common.dart';
 import '../../shared/widgets/listing_card.dart';
 import '../../state/providers.dart';
@@ -224,6 +225,10 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                     onTap: () => context.push('/notebook')),
               ],
             ),
+          ),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(AppTokens.s4, AppTokens.s2, AppTokens.s4, 0),
+            child: AdBanner(placement: 'category'),
           ),
           Expanded(
             child: _error != null && _items.isEmpty

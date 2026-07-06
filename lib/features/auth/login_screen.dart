@@ -71,6 +71,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    Center(
+                      child: ClipRRect(
+                        borderRadius: AppTokens.brMd,
+                        child: Image.asset('assets/images/logo.png',
+                            width: 64, height: 64, fit: BoxFit.cover),
+                      ),
+                    ),
+                    const SizedBox(height: AppTokens.s4),
                     Text('Welcome back 👋',
                         style: theme.textTheme.headlineMedium),
                     const SizedBox(height: AppTokens.s2),

@@ -1,11 +1,11 @@
 {
-    "name": "gyan_hub",
-    "short_name": "gyan_hub",
+    "name": "Gyan Hub",
+    "short_name": "Gyan Hub",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#ffffff",
+    "theme_color": "#1e56a0",
+    "description": "Gyan Hub — the friendly school store.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

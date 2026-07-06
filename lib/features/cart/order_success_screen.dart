@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/format.dart';
 import '../../core/models/models.dart';
 import '../../core/theme/app_tokens.dart';
+import '../../shared/widgets/ad_banner.dart';
 import '../../shared/widgets/common.dart';
 import '../../state/providers.dart';
 
@@ -98,6 +99,8 @@ class OrderSuccessScreen extends ConsumerWidget {
               onPressed: () => context.go('/shop'),
               child: const Text('Keep shopping'),
             ),
+            const SizedBox(height: AppTokens.s5),
+            const AdBanner(placement: 'order_success'),
           ],
         ),
       ),

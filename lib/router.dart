@@ -8,6 +8,7 @@ import 'features/account/notifications_screen.dart';
 import 'features/account/order_detail_screen.dart';
 import 'features/account/orders_screen.dart';
 import 'features/account/profile_edit_screen.dart';
+import 'features/account/theme_screen.dart';
 import 'features/auth/forgot_password_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/register_screen.dart';
@@ -121,5 +122,9 @@ GoRouter buildRouter() => GoRouter(
             path: '/profile-edit',
             parentNavigatorKey: rootNavigatorKey,
             builder: (_, _) => const ProfileEditScreen()),
+        GoRoute(
+            path: '/theme',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (_, _) => const ThemeScreen()),
       ],
     );
