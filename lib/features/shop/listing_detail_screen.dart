@@ -9,6 +9,8 @@ import '../../core/theme/app_tokens.dart';
 import '../../shared/widgets/ad_banner.dart';
 import '../../shared/widgets/common.dart';
 import '../../shared/widgets/listing_card.dart';
+import '../../shared/widgets/listing_image.dart';
+import '../../shared/widgets/quantity_stepper.dart';
 import '../../state/cart_state.dart';
 import '../../state/providers.dart';
 
@@ -28,11 +30,14 @@ class ListingDetailScreen extends ConsumerStatefulWidget {
 class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
   int _imageIndex = 0;
   bool _adding = false;
+  int? _quantity; // bulk only; null until the listing loads (starts at MOQ)
 
   Future<void> _addToCart(Listing listing) async {
     setState(() => _adding = true);
     try {
-      await ref.read(cartControllerProvider.notifier).add(listing);
+      await ref
+          .read(cartControllerProvider.notifier)
+          .add(listing, quantity: _quantity);
       if (mounted) showSuccess(context, 'Added to cart');
     } catch (err) {
       if (mounted) showError(context, err);
@@ -65,21 +70,37 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
           return ListView(
             padding: const EdgeInsets.all(AppTokens.s4),
             children: [
-              ClipRRect(
-                borderRadius: AppTokens.brLg,
-                child: AspectRatio(
-                  aspectRatio: 4 / 3,
-                  child: listing.images.isEmpty
-                      ? Container(
-                          color: AppTokens.tint,
-                          alignment: Alignment.center,
-                          child:
-                              const Text('📚', style: TextStyle(fontSize: 64)),
-                        )
-                      : CachedNetworkImage(
-                          imageUrl: listing.images[_imageIndex],
-                          fit: BoxFit.cover,
+              Container(
+                padding: const EdgeInsets.all(AppTokens.s4),
+                decoration: BoxDecoration(
+                  gradient: AppTokens.gradientFor(listing.id),
+                  borderRadius: AppTokens.brXl,
+                  boxShadow: AppTokens.softShadow,
+                ),
+                child: Column(
+                  children: [
+                    if (listing.subject?.isNotEmpty == true ||
+                        listing.grade?.isNotEmpty == true)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: AppPill(
+                          label: listing.subject?.isNotEmpty == true
+                              ? listing.subject!
+                              : listing.grade!,
+                          color: Colors.white,
+                          textColor: AppTokens.ink,
                         ),
+                      ),
+                    const SizedBox(height: AppTokens.s3),
+                    ClipRRect(
+                      borderRadius: AppTokens.brLg,
+                      child: AspectRatio(
+                        aspectRatio: 4 / 3,
+                        child:
+                            ListingImage(listing: listing, index: _imageIndex),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               if (listing.images.length > 1) ...[
@@ -129,20 +150,27 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                 ],
               ),
               const SizedBox(height: AppTokens.s2),
-              Row(
-                children: [
-                  Text(inr(listing.price),
-                      style: theme.textTheme.headlineMedium
-                          ?.copyWith(color: AppTokens.primary)),
-                  const SizedBox(width: AppTokens.s2),
-                  if (listing.hasDiscount)
-                    Text(inr(listing.originalPrice),
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          decoration: TextDecoration.lineThrough,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        )),
-                ],
-              ),
+              if (listing.isBulk)
+                _BulkPricing(
+                  listing: listing,
+                  quantity: _quantity ?? listing.moq,
+                  onQuantityChanged: (qty) => setState(() => _quantity = qty),
+                )
+              else
+                Row(
+                  children: [
+                    Text(inr(listing.price),
+                        style: theme.textTheme.headlineMedium
+                            ?.copyWith(color: AppTokens.ink)),
+                    const SizedBox(width: AppTokens.s2),
+                    if (listing.hasDiscount)
+                      Text(inr(listing.originalPrice),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            decoration: TextDecoration.lineThrough,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          )),
+                  ],
+                ),
               const SizedBox(height: AppTokens.s3),
               Wrap(
                 spacing: AppTokens.s2,
@@ -181,7 +209,10 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                 ),
               ),
               const SizedBox(height: AppTokens.s4),
-              const AdBanner(placement: 'listing_detail'),
+              // Same creative pool as the home screen banner — the
+              // 'listing_detail' placement has no ads assigned yet, so this
+              // slot was invisible. Serve the home_top ads here too.
+              const AdBanner(placement: 'home_top'),
               const SizedBox(height: AppTokens.s2),
               if (sold)
                 const FilledButton(onPressed: null, child: Text('Sold out'))
@@ -194,14 +225,97 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
               else
                 FilledButton.icon(
                   onPressed: _adding ? null : () => _addToCart(listing),
-                  icon: const Icon(Icons.add_shopping_cart),
-                  label: Text(_adding ? 'Adding…' : 'Add to cart'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppTokens.gold,
+                    foregroundColor: AppTokens.ink,
+                  ),
+                  icon: const Icon(Icons.shopping_bag_outlined),
+                  label: Text(_adding
+                      ? 'Adding…'
+                      : listing.isBulk
+                          ? 'Add ${_quantity ?? listing.moq} to cart · ${inr(listing.unitPriceFor(_quantity ?? listing.moq) * (_quantity ?? listing.moq))}'
+                          : 'Buy now'),
                 ),
               const SizedBox(height: AppTokens.s4),
             ],
           );
         },
       ),
+    );
+  }
+}
+
+/// Bulk pricing block: live unit price at the chosen quantity, a quantity
+/// stepper anchored at the MOQ, and the tier ladder ("500+ · ₹4.20/unit").
+class _BulkPricing extends StatelessWidget {
+  final Listing listing;
+  final int quantity;
+  final ValueChanged<int> onQuantityChanged;
+
+  const _BulkPricing({
+    required this.listing,
+    required this.quantity,
+    required this.onQuantityChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final unit = listing.unitPriceFor(quantity);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${inr(unit)}/unit',
+                      style: theme.textTheme.headlineMedium
+                          ?.copyWith(color: AppTokens.ink)),
+                  Text('MOQ ${listing.moq} units',
+                      style: theme.textTheme.labelSmall
+                          ?.copyWith(color: AppTokens.inkSoft)),
+                ],
+              ),
+            ),
+            QuantityStepper(
+              value: quantity,
+              min: listing.moq,
+              max: listing.stock,
+              onChanged: onQuantityChanged,
+            ),
+          ],
+        ),
+        if (listing.priceTiers.isNotEmpty) ...[
+          const SizedBox(height: AppTokens.s3),
+          Wrap(
+            spacing: AppTokens.s2,
+            runSpacing: AppTokens.s2,
+            children: listing.priceTiers
+                // Tap a tier to jump straight to its quantity — no + spam.
+                .map((tier) => GestureDetector(
+                      onTap: () => onQuantityChanged(tier.minQty),
+                      child: AppPill(
+                        label: '${tier.minQty}+ · ${inr(tier.unitPrice)}/unit',
+                        color: quantity >= tier.minQty
+                            ? AppTokens.gold
+                            : AppTokens.tint,
+                        textColor: AppTokens.ink,
+                      ),
+                    ))
+                .toList(),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: AppTokens.s1),
+            child: Text('Tap a tier to jump to it · tap the count to type',
+                style: theme.textTheme.labelSmall
+                    ?.copyWith(color: AppTokens.inkSoft)),
+          ),
+        ],
+      ],
     );
   }
 }

@@ -19,10 +19,11 @@ Color _hex(String hex) => AppTokens.hexToColor(hex);
 /// NavigationBar background (the closest mobile analog to a website footer).
 ThemeData buildAppTheme([ThemeOption? t]) {
   final primary = t != null ? _hex(t.primaryColor) : AppTokens.primary;
-  final primaryDark = t != null ? _hex(t.headingColor) : AppTokens.primaryDark;
+  // Headings & primary text lean to a premium near-black in the default look.
+  final primaryDark = t != null ? _hex(t.headingColor) : AppTokens.ink;
   final secondary = t != null ? _hex(t.secondaryColor) : AppTokens.accent;
   final background = t != null ? _hex(t.backgroundColor) : AppTokens.background;
-  final buttonBg = t != null ? _hex(t.buttonBackground) : AppTokens.primary;
+  final buttonBg = t != null ? _hex(t.buttonBackground) : AppTokens.ink;
   final buttonText = t != null ? _hex(t.buttonText) : Colors.white;
   final borderColor = t != null
       ? _hex(t.borderColor)
@@ -42,16 +43,16 @@ ThemeData buildAppTheme([ThemeOption? t]) {
   final displayText = GoogleFonts.poppinsTextTheme();
 
   final textTheme = baseText.copyWith(
-    displayLarge: displayText.displayLarge?.copyWith(fontWeight: FontWeight.w700, color: primaryDark),
-    displayMedium: displayText.displayMedium?.copyWith(fontWeight: FontWeight.w700, color: primaryDark),
-    displaySmall: displayText.displaySmall?.copyWith(fontWeight: FontWeight.w700, color: primaryDark),
-    headlineLarge: displayText.headlineLarge?.copyWith(fontWeight: FontWeight.w700, color: primaryDark),
-    headlineMedium: displayText.headlineMedium?.copyWith(fontWeight: FontWeight.w700, color: primaryDark),
-    headlineSmall: displayText.headlineSmall?.copyWith(fontWeight: FontWeight.w600, color: primaryDark),
-    titleLarge: displayText.titleLarge?.copyWith(fontWeight: FontWeight.w600, color: primaryDark),
-    titleMedium: displayText.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-    titleSmall: displayText.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-    labelLarge: displayText.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+    displayLarge: displayText.displayLarge?.copyWith(fontWeight: FontWeight.w800, color: primaryDark, letterSpacing: -1),
+    displayMedium: displayText.displayMedium?.copyWith(fontWeight: FontWeight.w800, color: primaryDark, letterSpacing: -1),
+    displaySmall: displayText.displaySmall?.copyWith(fontWeight: FontWeight.w800, color: primaryDark, letterSpacing: -0.5),
+    headlineLarge: displayText.headlineLarge?.copyWith(fontWeight: FontWeight.w800, color: primaryDark, letterSpacing: -0.5),
+    headlineMedium: displayText.headlineMedium?.copyWith(fontWeight: FontWeight.w800, color: primaryDark, letterSpacing: -0.5),
+    headlineSmall: displayText.headlineSmall?.copyWith(fontWeight: FontWeight.w700, color: primaryDark),
+    titleLarge: displayText.titleLarge?.copyWith(fontWeight: FontWeight.w700, color: primaryDark),
+    titleMedium: displayText.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+    titleSmall: displayText.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+    labelLarge: displayText.labelLarge?.copyWith(fontWeight: FontWeight.w700),
   );
 
   return ThemeData(
@@ -69,24 +70,24 @@ ThemeData buildAppTheme([ThemeOption? t]) {
     cardTheme: CardThemeData(
       color: AppTokens.surface,
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: AppTokens.brLg),
+      shape: RoundedRectangleBorder(borderRadius: AppTokens.brXl),
       margin: EdgeInsets.zero,
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         backgroundColor: buttonBg,
         foregroundColor: buttonText,
-        minimumSize: const Size(0, 48),
-        shape: RoundedRectangleBorder(borderRadius: AppTokens.brMd),
+        minimumSize: const Size(0, 54),
+        shape: const StadiumBorder(),
         textStyle: textTheme.labelLarge,
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: primary,
-        minimumSize: const Size(0, 48),
-        side: BorderSide(color: primary.withValues(alpha: 0.4)),
-        shape: RoundedRectangleBorder(borderRadius: AppTokens.brMd),
+        foregroundColor: primaryDark,
+        minimumSize: const Size(0, 54),
+        side: BorderSide(color: AppTokens.ink.withValues(alpha: 0.15)),
+        shape: const StadiumBorder(),
         textStyle: textTheme.labelLarge,
       ),
     ),
@@ -100,35 +101,61 @@ ThemeData buildAppTheme([ThemeOption? t]) {
       filled: true,
       fillColor: AppTokens.surface,
       contentPadding: const EdgeInsets.symmetric(
-        horizontal: AppTokens.s4,
-        vertical: AppTokens.s3,
+        horizontal: AppTokens.s5,
+        vertical: AppTokens.s4,
       ),
       border: OutlineInputBorder(
-        borderRadius: AppTokens.brMd,
+        borderRadius: AppTokens.brLg,
         borderSide: BorderSide(color: borderColor),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: AppTokens.brMd,
+        borderRadius: AppTokens.brLg,
         borderSide: BorderSide(color: borderColor),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: AppTokens.brMd,
-        borderSide: BorderSide(color: primary, width: 2),
+        borderRadius: AppTokens.brLg,
+        borderSide: BorderSide(color: AppTokens.ink, width: 1.5),
       ),
     ),
     chipTheme: ChipThemeData(
-      backgroundColor: AppTokens.tint,
-      selectedColor: primary,
-      labelStyle: textTheme.labelMedium,
+      backgroundColor: AppTokens.surface,
+      selectedColor: AppTokens.ink,
+      checkmarkColor: Colors.white,
+      // Selected chips are ink-dark → white label; unselected → ink label.
+      // A WidgetStateColor on the label *colour* is the pattern chips honour
+      // for both FilterChip and ChoiceChip (labelStyle/secondaryLabelStyle
+      // do not reliably flip the colour on their own).
+      labelStyle: textTheme.labelLarge?.copyWith(
+        color: WidgetStateColor.resolveWith((states) =>
+            states.contains(WidgetState.selected)
+                ? Colors.white
+                : AppTokens.ink),
+      ),
+      secondaryLabelStyle: textTheme.labelLarge?.copyWith(
+        color: WidgetStateColor.resolveWith((states) =>
+            states.contains(WidgetState.selected)
+                ? Colors.white
+                : AppTokens.ink),
+      ),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppTokens.s3, vertical: AppTokens.s2),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTokens.radiusPill),
       ),
       side: BorderSide.none,
     ),
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: footerColor,
-      indicatorColor: AppTokens.tint,
-      labelTextStyle: WidgetStatePropertyAll(textTheme.labelSmall),
+      backgroundColor: t != null ? footerColor : AppTokens.surface,
+      indicatorColor: AppTokens.ink,
+      elevation: 0,
+      height: 68,
+      labelTextStyle: WidgetStatePropertyAll(
+          textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700)),
+      iconTheme: WidgetStateProperty.resolveWith((states) => IconThemeData(
+            color: states.contains(WidgetState.selected)
+                ? Colors.white
+                : AppTokens.inkSoft,
+          )),
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,

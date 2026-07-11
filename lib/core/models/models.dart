@@ -68,6 +68,21 @@ class CategoryRef {
       );
 }
 
+/// One quantity tier of a bulk listing: at [minQty]+ units, each costs [unitPrice].
+class PriceTier {
+  final int minQty;
+  final double unitPrice;
+
+  const PriceTier({required this.minQty, required this.unitPrice});
+
+  factory PriceTier.fromJson(Map<String, dynamic> json) => PriceTier(
+        minQty: _i(json['minQty']),
+        unitPrice: _d(json['unitPrice']),
+      );
+
+  Map<String, dynamic> toJson() => {'minQty': minQty, 'unitPrice': unitPrice};
+}
+
 class Listing {
   final String id;
   final String title;
@@ -87,6 +102,13 @@ class Listing {
   final CategoryRef? category;
   final DateTime? createdAt;
 
+  // Corporate/bulk catalog: restockable products sold in quantity, with an
+  // optional minimum order quantity and per-quantity price tiers.
+  final bool isBulk;
+  final int moq;
+  final int? stock;
+  final List<PriceTier> priceTiers;
+
   const Listing({
     required this.id,
     required this.title,
@@ -105,12 +127,34 @@ class Listing {
     required this.viewCount,
     this.category,
     this.createdAt,
+    this.isBulk = false,
+    this.moq = 1,
+    this.stock,
+    this.priceTiers = const [],
   });
 
   double get priceValue => _d(price);
   double get originalPriceValue => _d(originalPrice);
   bool get hasDiscount =>
       originalPrice != null && originalPriceValue > priceValue;
+
+  /// Per-unit price at [quantity] — the highest tier whose minQty is covered
+  /// wins; falls back to the base price. Mirrors the backend's pricing util.
+  double unitPriceFor(int quantity) {
+    var best = priceValue;
+    var bestMin = 0;
+    for (final tier in priceTiers) {
+      if (quantity >= tier.minQty && tier.minQty >= bestMin) {
+        best = tier.unitPrice;
+        bestMin = tier.minQty;
+      }
+    }
+    return best;
+  }
+
+  /// Cheapest advertised per-unit price (base or any tier), for "from ₹x/unit".
+  double get lowestUnitPrice => priceTiers.fold(
+      priceValue, (low, tier) => tier.unitPrice < low ? tier.unitPrice : low);
 
   factory Listing.fromJson(Map<String, dynamic> json) => Listing(
         id: json['id'] as String,
@@ -132,6 +176,13 @@ class Listing {
             ? CategoryRef.fromJson(json['category'] as Map<String, dynamic>)
             : null,
         createdAt: DateTime.tryParse(_s(json['createdAt']) ?? ''),
+        isBulk: json['isBulk'] == true,
+        moq: json['moq'] == null ? 1 : _i(json['moq']),
+        stock: json['stock'] == null ? null : _i(json['stock']),
+        priceTiers: (json['priceTiers'] as List? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .map(PriceTier.fromJson)
+            .toList(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -154,6 +205,10 @@ class Listing {
             ? null
             : {'id': category!.id, 'name': category!.name, 'slug': category!.slug},
         'createdAt': createdAt?.toIso8601String(),
+        'isBulk': isBulk,
+        'moq': moq,
+        'stock': stock,
+        'priceTiers': priceTiers.map((t) => t.toJson()).toList(),
       };
 }
 
@@ -295,13 +350,20 @@ class CartItem {
   final String id;
   final String listingId;
   final Listing listing;
+  final int quantity;
 
-  const CartItem({required this.id, required this.listingId, required this.listing});
+  const CartItem({
+    required this.id,
+    required this.listingId,
+    required this.listing,
+    this.quantity = 1,
+  });
 
   factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
         id: json['id'] as String,
         listingId: json['listingId'] as String,
         listing: Listing.fromJson(json['listing'] as Map<String, dynamic>),
+        quantity: json['quantity'] == null ? 1 : _i(json['quantity']),
       );
 }
 

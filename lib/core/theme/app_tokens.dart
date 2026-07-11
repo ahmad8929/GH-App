@@ -10,8 +10,15 @@ class AppTokens {
   static const Color primaryDark = Color(0xFF163172);
   static const Color accent = Color(0xFFFFC93C);
   static const Color tint = Color(0xFFD6E4F0);
-  static const Color background = Color(0xFFF6F6F6);
+  static const Color background = Color(0xFFF3F4F6);
   static const Color surface = Colors.white;
+
+  // Redesign palette — near-black "ink" for headings & dark controls, and a
+  // warm gold for the primary shopping CTA (matches the pharmacy-app look).
+  static const Color ink = Color(0xFF17181F);
+  static const Color inkSoft = Color(0xFF5A5E6B);
+  static const Color gold = Color(0xFFF4C24A);
+  static const Color goldDark = Color(0xFFE0A32E);
 
   // Semantic
   static const Color success = Color(0xFF1F9D6D);
@@ -29,23 +36,47 @@ class AppTokens {
   static const double s5 = 24;
   static const double s6 = 32;
 
-  // Corner radii (16–20dp, friendly and rounded)
+  // Corner radii — larger & rounder for the redesign.
   static const double radiusSm = 12;
-  static const double radiusMd = 16;
-  static const double radiusLg = 20;
+  static const double radiusMd = 18;
+  static const double radiusLg = 24;
+  static const double radiusXl = 30;
   static const double radiusPill = 999;
 
   static BorderRadius get brSm => BorderRadius.circular(radiusSm);
   static BorderRadius get brMd => BorderRadius.circular(radiusMd);
   static BorderRadius get brLg => BorderRadius.circular(radiusLg);
+  static BorderRadius get brXl => BorderRadius.circular(radiusXl);
 
   static List<BoxShadow> get softShadow => [
         BoxShadow(
-          color: primaryDark.withValues(alpha: 0.08),
-          blurRadius: 18,
-          offset: const Offset(0, 8),
+          color: ink.withValues(alpha: 0.06),
+          blurRadius: 24,
+          offset: const Offset(0, 12),
         ),
       ];
+
+  /// Vibrant product gradients used on hero cards and product tiles — the
+  /// signature look of the pharmacy-app inspiration. [gradientFor] picks a
+  /// stable one from any string key (e.g. a listing id) so a grid looks
+  /// colourful and varied while each item keeps the same colour every render.
+  static const List<List<Color>> gradients = [
+    [Color(0xFF9E1B4B), Color(0xFF6C0F35)], // wine
+    [Color(0xFFF2B33D), Color(0xFFDD8A17)], // gold
+    [Color(0xFF6E97C7), Color(0xFF47699F)], // blue
+    [Color(0xFF2BA98A), Color(0xFF14755C)], // teal
+    [Color(0xFF7C6BEB), Color(0xFF5B45D6)], // violet
+    [Color(0xFFEB6A5E), Color(0xFFCF4034)], // coral
+  ];
+
+  static LinearGradient gradientFor(String key) {
+    final colors = gradients[(key.hashCode & 0x7fffffff) % gradients.length];
+    return LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: colors,
+    );
+  }
 
   /// Parses "#rgb" or "#rrggbb" (both valid per the backend's Theme model
   /// validation) into a [Color].

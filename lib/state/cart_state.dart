@@ -6,12 +6,16 @@ import '../core/models/models.dart';
 import 'auth_state.dart';
 import 'providers.dart';
 
-/// One line per unique listing — the backend cart has no quantity column.
+/// One line per unique listing; bulk items carry a quantity > 1.
 @immutable
 class CartLine {
   final String? serverId; // null for guest (local) lines
   final Listing listing;
-  const CartLine({this.serverId, required this.listing});
+  final int quantity;
+  const CartLine({this.serverId, required this.listing, this.quantity = 1});
+
+  double get unitPrice => listing.unitPriceFor(quantity);
+  double get lineTotal => unitPrice * quantity;
 }
 
 @immutable
@@ -26,8 +30,7 @@ class CartState {
     this.coupon,
   });
 
-  double get subtotal =>
-      lines.fold(0, (sum, line) => sum + line.listing.priceValue);
+  double get subtotal => lines.fold(0, (sum, line) => sum + line.lineTotal);
   double get total => coupon?.finalAmount ?? subtotal;
   int get count => lines.length;
 
@@ -78,9 +81,9 @@ class CartController extends StateNotifier<CartState> {
     final guest = local.readGuestCart();
     if (guest.isEmpty || _mergedForUser == userId) return;
     _mergedForUser = userId;
-    for (final listing in guest) {
+    for (final (listing, quantity) in guest) {
       try {
-        await _ref.read(cartApiProvider).add(listing.id);
+        await _ref.read(cartApiProvider).add(listing.id, quantity: quantity);
       } on ApiException {
         // already in cart / sold / own listing — skip quietly
       }
@@ -92,7 +95,10 @@ class CartController extends StateNotifier<CartState> {
     final items = await _ref.read(cartApiProvider).get();
     state = state.copyWith(
       lines: items
-          .map((item) => CartLine(serverId: item.id, listing: item.listing))
+          .map((item) => CartLine(
+              serverId: item.id,
+              listing: item.listing,
+              quantity: item.quantity))
           .toList(),
       loading: false,
     );
@@ -101,16 +107,22 @@ class CartController extends StateNotifier<CartState> {
   void _loadGuest() {
     final guest = _ref.read(localStoreProvider).readGuestCart();
     state = state.copyWith(
-      lines: guest.map((listing) => CartLine(listing: listing)).toList(),
+      lines: guest
+          .map((entry) => CartLine(listing: entry.$1, quantity: entry.$2))
+          .toList(),
       loading: false,
     );
   }
 
-  Future<void> add(Listing listing) async {
+  Future<void> add(Listing listing, {int? quantity}) async {
+    // Bulk items enter at their minimum order quantity; used items at 1.
+    final qty = listing.isBulk
+        ? (quantity ?? listing.moq).clamp(listing.moq, 1 << 30)
+        : 1;
     state = state.copyWith(clearCoupon: true);
     if (_signedIn) {
       try {
-        await _ref.read(cartApiProvider).add(listing.id);
+        await _ref.read(cartApiProvider).add(listing.id, quantity: qty);
       } on ApiException catch (err) {
         if (err.statusCode != 409) rethrow; // already in cart is fine
       }
@@ -118,8 +130,35 @@ class CartController extends StateNotifier<CartState> {
     } else {
       final local = _ref.read(localStoreProvider);
       final guest = local.readGuestCart();
-      if (!guest.any((item) => item.id == listing.id)) {
-        await local.writeGuestCart([...guest, listing]);
+      final index = guest.indexWhere((item) => item.$1.id == listing.id);
+      if (index >= 0) {
+        // Bulk lines accumulate; used items stay single.
+        if (listing.isBulk) {
+          guest[index] = (guest[index].$1, guest[index].$2 + qty);
+          await local.writeGuestCart(guest);
+        }
+      } else {
+        await local.writeGuestCart([...guest, (listing, qty)]);
+      }
+      _loadGuest();
+    }
+  }
+
+  /// Sets an exact quantity on a bulk cart line (clamped to MOQ; 0 removes).
+  Future<void> setQuantity(CartLine line, int quantity) async {
+    state = state.copyWith(clearCoupon: true);
+    if (quantity <= 0) return remove(line);
+    final qty = quantity.clamp(line.listing.moq, 1 << 30);
+    if (line.serverId != null) {
+      await _ref.read(cartApiProvider).setQuantity(line.serverId!, qty);
+      await _loadServer();
+    } else {
+      final local = _ref.read(localStoreProvider);
+      final guest = local.readGuestCart();
+      final index = guest.indexWhere((item) => item.$1.id == line.listing.id);
+      if (index >= 0) {
+        guest[index] = (guest[index].$1, qty);
+        await local.writeGuestCart(guest);
       }
       _loadGuest();
     }
@@ -133,7 +172,7 @@ class CartController extends StateNotifier<CartState> {
     } else {
       final local = _ref.read(localStoreProvider);
       final guest = local.readGuestCart()
-        ..removeWhere((item) => item.id == line.listing.id);
+        ..removeWhere((item) => item.$1.id == line.listing.id);
       await local.writeGuestCart(guest);
       _loadGuest();
     }

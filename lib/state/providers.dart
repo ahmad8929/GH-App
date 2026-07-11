@@ -62,6 +62,7 @@ const shopCategories = <ShopCategory>[
   ShopCategory('new-books', 'New Books', '📖', ['new-book', 'new book']),
   ShopCategory('uniforms', 'Uniforms', '👕', ['uniform']),
   ShopCategory('stationery', 'Stationery', '✏️', ['stationery', 'stationary']),
+  ShopCategory('corporate', 'Corporate Bulk', '🏢', ['corporate', 'bulk']),
   ShopCategory('custom-notebooks', 'Custom Notebook', '📒', ['custom', 'notebook']),
 ];
 

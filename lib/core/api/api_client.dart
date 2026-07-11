@@ -16,8 +16,12 @@ class ApiClient {
   ApiClient(this._tokens) {
     _dio = Dio(BaseOptions(
       baseUrl: AppConfig.apiUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 20),
+      // The backend runs on Render's free tier, which spins the instance
+      // down after inactivity. A cold start can take 30-50s to answer the
+      // first request, so the timeouts must tolerate that wake-up or the
+      // home screen shows "Couldn't reach the store" on a fresh launch.
+      connectTimeout: const Duration(seconds: 60),
+      receiveTimeout: const Duration(seconds: 60),
       // We map error payloads ourselves; let all statuses through.
       validateStatus: (_) => true,
     ));

@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,14 +6,53 @@ import '../../core/format.dart';
 import '../../core/models/models.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../state/auth_state.dart';
+import '../../state/cart_state.dart';
 import '../../state/favorites_state.dart';
 import 'common.dart';
+import 'listing_image.dart';
+
+/// A round, floating icon button used over product imagery (favorite, etc.).
+class CircleIconButton extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final Color background;
+  final double size;
+  final VoidCallback onTap;
+
+  const CircleIconButton({
+    super.key,
+    required this.icon,
+    required this.onTap,
+    this.iconColor = AppTokens.ink,
+    this.background = Colors.white,
+    this.size = 36,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: background,
+      shape: const CircleBorder(),
+      elevation: 2,
+      shadowColor: AppTokens.ink.withValues(alpha: 0.2),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: Icon(icon, size: size * 0.5, color: iconColor),
+        ),
+      ),
+    );
+  }
+}
 
 class FavoriteButton extends ConsumerWidget {
   final String listingId;
   final double size;
 
-  const FavoriteButton({super.key, required this.listingId, this.size = 20});
+  const FavoriteButton({super.key, required this.listingId, this.size = 36});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,40 +61,64 @@ class FavoriteButton extends ConsumerWidget {
     final signedIn =
         ref.watch(authControllerProvider.select((a) => a.isSignedIn));
 
-    return Material(
-      color: AppTokens.surface,
-      shape: const CircleBorder(),
-      elevation: 1,
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: () async {
-          if (!signedIn) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text('Log in to save favorites')));
-            context.push('/login');
-            return;
+    return CircleIconButton(
+      size: size,
+      icon: favorited ? Icons.favorite : Icons.favorite_border,
+      iconColor: favorited ? AppTokens.coral : AppTokens.ink,
+      onTap: () async {
+        if (!signedIn) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Log in to save favorites')));
+          context.push('/login');
+          return;
+        }
+        try {
+          final nowFavorited = await ref
+              .read(favoritesControllerProvider.notifier)
+              .toggle(listingId);
+          if (context.mounted) {
+            showSuccess(context,
+                nowFavorited ? 'Saved to favorites' : 'Removed from favorites');
           }
-          try {
-            final nowFavorited = await ref
-                .read(favoritesControllerProvider.notifier)
-                .toggle(listingId);
-            if (context.mounted) {
-              showSuccess(context,
-                  nowFavorited ? 'Saved to favorites' : 'Removed from favorites');
-            }
-          } catch (err) {
-            if (context.mounted) showError(context, err);
-          }
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(AppTokens.s2),
-          child: Icon(
-            favorited ? Icons.favorite : Icons.favorite_border,
-            size: size,
-            color: favorited ? AppTokens.coral : AppTokens.primaryDark,
-          ),
-        ),
-      ),
+        } catch (err) {
+          if (context.mounted) showError(context, err);
+        }
+      },
+    );
+  }
+}
+
+/// Gold "add to cart" pill/circle shown on product cards — the primary
+/// shopping CTA colour from the redesign.
+class _AddToCartButton extends ConsumerWidget {
+  final Listing listing;
+
+  const _AddToCartButton({required this.listing});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final inCart = ref
+        .watch(cartControllerProvider.select((c) => c.contains(listing.id)));
+    final sold = listing.status == 'sold';
+
+    return CircleIconButton(
+      size: 40,
+      background: sold ? AppTokens.tint : AppTokens.gold,
+      iconColor: AppTokens.ink,
+      icon: inCart ? Icons.check_rounded : Icons.add_rounded,
+      onTap: () async {
+        if (sold) return;
+        if (inCart) {
+          context.push('/cart');
+          return;
+        }
+        try {
+          await ref.read(cartControllerProvider.notifier).add(listing);
+          if (context.mounted) showSuccess(context, 'Added to cart');
+        } catch (err) {
+          if (context.mounted) showError(context, err);
+        }
+      },
     );
   }
 }
@@ -69,99 +131,102 @@ class ListingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTokens.surface,
+        borderRadius: AppTokens.brXl,
+        boxShadow: AppTokens.softShadow,
+      ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => context.push('/listing/${listing.id}'),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Stack(
-              children: [
-                AspectRatio(
-                  aspectRatio: 4 / 3,
-                  child: listing.images.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: listing.images.first,
-                          fit: BoxFit.cover,
-                          errorWidget: (_, _, _) => const _Placeholder(),
-                        )
-                      : const _Placeholder(),
-                ),
-                Positioned(
-                  top: AppTokens.s2,
-                  right: AppTokens.s2,
-                  child: FavoriteButton(listingId: listing.id, size: 18),
-                ),
-                if (listing.isFeatured)
-                  const Positioned(
-                    top: AppTokens.s2,
-                    left: AppTokens.s2,
-                    child: AppPill(label: '★ Featured', color: AppTokens.accent),
-                  ),
-              ],
-            ),
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(AppTokens.s3),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(inr(listing.price),
-                            style: theme.textTheme.titleMedium
-                                ?.copyWith(color: AppTokens.primary)),
-                        const SizedBox(width: AppTokens.s2),
-                        if (listing.hasDiscount)
-                          Expanded(
-                            child: Text(
-                              inr(listing.originalPrice),
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                decoration: TextDecoration.lineThrough,
-                                color: theme.colorScheme.onSurfaceVariant,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  DecoratedBox(
+                    decoration: const BoxDecoration(color: AppTokens.background),
+                    child: ListingImage(listing: listing),
+                  ),
+                  Positioned(
+                    top: AppTokens.s2,
+                    right: AppTokens.s2,
+                    child: FavoriteButton(listingId: listing.id, size: 34),
+                  ),
+                  if (listing.isFeatured)
+                    const Positioned(
+                      top: AppTokens.s3,
+                      left: AppTokens.s3,
+                      child: AppPill(
+                          label: '★ Featured',
+                          color: AppTokens.gold,
+                          textColor: AppTokens.ink),
+                    ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  AppTokens.s3, AppTokens.s3, AppTokens.s2, AppTokens.s2),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    listing.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    listing.isBulk
+                        ? 'Bulk · MOQ ${listing.moq}'
+                        : listing.subject?.isNotEmpty == true
+                            ? listing.subject!
+                            : (conditionLabels[listing.condition] ??
+                                listing.condition),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall
+                        ?.copyWith(color: AppTokens.inkSoft),
+                  ),
+                  const SizedBox(height: AppTokens.s2),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (listing.hasDiscount && !listing.isBulk)
+                              Text(
+                                inr(listing.originalPrice),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  decoration: TextDecoration.lineThrough,
+                                  color: AppTokens.inkSoft,
+                                ),
                               ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: AppTokens.s1),
-                    Expanded(
-                      child: Text(
-                        listing.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyMedium
-                            ?.copyWith(fontWeight: FontWeight.w700),
+                            Text(
+                                listing.isBulk
+                                    ? 'from ${inr(listing.lowestUnitPrice)}/u'
+                                    : inr(listing.price),
+                                style: theme.textTheme.titleMedium
+                                    ?.copyWith(color: AppTokens.ink)),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: AppTokens.s1),
-                    Text(
-                      conditionLabels[listing.condition] ?? listing.condition,
-                      style: theme.textTheme.labelSmall
-                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                    ),
-                  ],
-                ),
+                      _AddToCartButton(listing: listing),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _Placeholder extends StatelessWidget {
-  const _Placeholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: AppTokens.tint,
-      alignment: Alignment.center,
-      child: const Text('📚', style: TextStyle(fontSize: 34)),
     );
   }
 }
