@@ -94,14 +94,14 @@ class HomeScreen extends ConsumerWidget {
             Text(
               auth.isSignedIn
                   ? 'Hi, ${auth.user!.name.split(' ').first}! 👋'
-                  : 'School things, shared smarter. 🎒',
-              style: theme.textTheme.headlineSmall,
+                  : 'School things,\nshared smarter. 🎒',
+              style: theme.textTheme.headlineMedium,
             ),
-            const SizedBox(height: AppTokens.s1),
+            const SizedBox(height: AppTokens.s2),
             Text(
               'Old books, new books, uniforms, stationery & custom notebooks.',
               style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  ?.copyWith(color: AppTokens.inkSoft),
             ),
             const SizedBox(height: AppTokens.s4),
             const _AnnouncementsStrip(),
@@ -109,7 +109,7 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: AppTokens.s3),
             SectionHeader('Shop by category'),
             SizedBox(
-              height: 108,
+              height: 116,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: shopCategories.length,
@@ -189,31 +189,53 @@ class _CategoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 120,
-      child: Card(
-        child: InkWell(
-          borderRadius: AppTokens.brLg,
-          onTap: () {
-            if (category.slug == 'custom-notebooks') {
-              context.push('/notebook');
-            } else {
-              context.go('/shop?cat=${category.slug}');
-            }
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(AppTokens.s3),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(category.emoji, style: const TextStyle(fontSize: 26)),
-                const SizedBox(height: AppTokens.s2),
-                Text(
-                  category.label,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  style: Theme.of(context).textTheme.labelMedium,
-                ),
-              ],
+      width: 116,
+      child: Material(
+        color: Colors.transparent,
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: AppTokens.gradientFor(category.slug),
+            borderRadius: AppTokens.brLg,
+            boxShadow: AppTokens.softShadow,
+          ),
+          child: InkWell(
+            borderRadius: AppTokens.brLg,
+            onTap: () {
+              if (category.slug == 'custom-notebooks') {
+                context.push('/notebook');
+              } else {
+                context.go('/shop?cat=${category.slug}');
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(AppTokens.s3),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.22),
+                      borderRadius: AppTokens.brMd,
+                    ),
+                    child:
+                        Text(category.emoji, style: const TextStyle(fontSize: 24)),
+                  ),
+                  const Spacer(),
+                  Text(
+                    category.label,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

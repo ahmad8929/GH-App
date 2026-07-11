@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +6,8 @@ import '../../core/format.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../shared/widgets/ad_banner.dart';
 import '../../shared/widgets/common.dart';
+import '../../shared/widgets/listing_image.dart';
+import '../../shared/widgets/quantity_stepper.dart';
 import '../../state/auth_state.dart';
 import '../../state/cart_state.dart';
 
@@ -96,45 +97,85 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                           final line = cart.lines[index];
                           final listing = line.listing;
                           return Card(
-                            child: ListTile(
-                              onTap: () =>
-                                  context.push('/listing/${listing.id}'),
-                              leading: ClipRRect(
-                                borderRadius: AppTokens.brSm,
-                                child: SizedBox(
-                                  width: 52,
-                                  height: 52,
-                                  child: listing.images.isNotEmpty
-                                      ? CachedNetworkImage(
-                                          imageUrl: listing.images.first,
-                                          fit: BoxFit.cover)
-                                      : Container(
-                                          color: AppTokens.tint,
-                                          alignment: Alignment.center,
-                                          child: const Text('📚')),
-                                ),
-                              ),
-                              title: Text(listing.title,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis),
-                              subtitle: Text(
-                                  conditionLabels[listing.condition] ??
-                                      listing.condition),
-                              trailing: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.end,
+                            child: Padding(
+                              padding: const EdgeInsets.all(AppTokens.s3),
+                              child: Column(
                                 children: [
-                                  Text(inr(listing.price),
-                                      style: theme.textTheme.titleSmall),
                                   InkWell(
-                                    onTap: () => ref
-                                        .read(cartControllerProvider.notifier)
-                                        .remove(line),
-                                    child: Text('Remove',
-                                        style: theme.textTheme.labelSmall
-                                            ?.copyWith(
-                                                color: AppTokens.danger)),
+                                    onTap: () =>
+                                        context.push('/listing/${listing.id}'),
+                                    child: Row(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: AppTokens.brSm,
+                                          child: SizedBox(
+                                            width: 52,
+                                            height: 52,
+                                            child:
+                                                ListingImage(listing: listing),
+                                          ),
+                                        ),
+                                        const SizedBox(width: AppTokens.s3),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(listing.title,
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: theme
+                                                      .textTheme.titleSmall),
+                                              Text(
+                                                  listing.isBulk
+                                                      ? '${inr(line.unitPrice)}/unit'
+                                                      : conditionLabels[listing
+                                                              .condition] ??
+                                                          listing.condition,
+                                                  style: theme
+                                                      .textTheme.labelSmall
+                                                      ?.copyWith(
+                                                          color: AppTokens
+                                                              .inkSoft)),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: AppTokens.s2),
+                                        Text(inr(line.lineTotal),
+                                            style: theme.textTheme.titleSmall),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppTokens.s2),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      if (listing.isBulk)
+                                        QuantityStepper(
+                                          value: line.quantity,
+                                          min: listing.moq,
+                                          max: listing.stock,
+                                          removableBelowMin: true,
+                                          onChanged: (qty) => ref
+                                              .read(cartControllerProvider
+                                                  .notifier)
+                                              .setQuantity(line, qty),
+                                        )
+                                      else
+                                        const SizedBox.shrink(),
+                                      InkWell(
+                                        onTap: () => ref
+                                            .read(
+                                                cartControllerProvider.notifier)
+                                            .remove(line),
+                                        child: Text('Remove',
+                                            style: theme.textTheme.labelSmall
+                                                ?.copyWith(
+                                                    color: AppTokens.danger)),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),

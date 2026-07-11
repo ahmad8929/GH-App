@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -152,8 +155,12 @@ class CartApi {
         .toList();
   }
 
-  Future<void> add(String listingId) =>
-      _client.post('/cart', body: {'listingId': listingId});
+  Future<void> add(String listingId, {int quantity = 1}) =>
+      _client.post('/cart', body: {'listingId': listingId, 'quantity': quantity});
+
+  /// Sets an exact quantity on a cart line (bulk items; 0 removes the line).
+  Future<void> setQuantity(String cartItemId, int quantity) =>
+      _client.patch('/cart/items/$cartItemId', body: {'quantity': quantity});
 
   Future<void> removeItem(String cartItemId) =>
       _client.delete('/cart/items/$cartItemId');
@@ -418,6 +425,54 @@ class NotebooksApi {
     return (res['data'] as List? ?? [])
         .map((e) => NotebookTemplate.fromJson(e as Map<String, dynamic>))
         .toList();
+  }
+
+  /// Submits a made-to-order notebook design: specs + the raw cover photos +
+  /// the composited cover preview PNG + the layer layout (so production can
+  /// reproduce the design exactly).
+  Future<void> submitOrder({
+    String? templateId,
+    required String coverColor,
+    required String ruling,
+    required String binding,
+    required int pages,
+    required String nameOnCover,
+    required double price,
+    required List<Map<String, dynamic>> designLayers,
+    required List<Uint8List> photos,
+    Uint8List? previewPng,
+    required String contactName,
+    required String contactPhone,
+    required String address,
+    required String city,
+  }) async {
+    final form = FormData.fromMap({
+      if (templateId != null && templateId.isNotEmpty) 'templateId': templateId,
+      'coverColor': coverColor,
+      'ruling': ruling,
+      'binding': binding,
+      'pages': pages,
+      if (nameOnCover.isNotEmpty) 'nameOnCover': nameOnCover,
+      'price': price,
+      'designLayers': jsonEncode(designLayers),
+      'contactName': contactName,
+      'contactPhone': contactPhone,
+      'address': address,
+      'city': city,
+    });
+    for (final (index, bytes) in photos.indexed) {
+      form.files.add(MapEntry(
+        'photos',
+        MultipartFile.fromBytes(bytes, filename: 'photo_$index.png'),
+      ));
+    }
+    if (previewPng != null) {
+      form.files.add(MapEntry(
+        'preview',
+        MultipartFile.fromBytes(previewPng, filename: 'preview.png'),
+      ));
+    }
+    await _client.post('/custom-notebooks/orders', form: form);
   }
 }
 

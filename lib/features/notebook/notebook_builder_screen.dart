@@ -1,11 +1,17 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/format.dart';
 import '../../core/models/models.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../shared/widgets/common.dart';
+import '../../state/auth_state.dart';
 import '../../state/providers.dart';
+import 'cover_designer.dart';
+import 'notebook_3d_view.dart';
 
 final _templatesProvider = FutureProvider<List<NotebookTemplate>>(
     (ref) => ref.watch(notebooksApiProvider).templates());
@@ -39,6 +45,12 @@ class _NotebookBuilderScreenState
   int _pages = 120;
   final _nameController = TextEditingController();
 
+  final _designerKey = GlobalKey<CoverDesignerState>();
+  final List<CoverLayer> _layers = [];
+  int _tab = 0; // 0 = design, 1 = 3D preview
+  Uint8List? _coverArtPng;
+  bool _submitting = false;
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -51,7 +63,125 @@ class _NotebookBuilderScreenState
     if (_binding == 'stitched') total += 20;
     if (_binding == 'hardbound') total += 60;
     if (_nameController.text.trim().isNotEmpty) total += 30;
+    total += _layers.length * 20; // photo print charge per photo
     return total.roundToDouble();
+  }
+
+  Future<void> _openPreview() async {
+    final png = await _designerKey.currentState?.capturePng();
+    setState(() {
+      _coverArtPng = png;
+      _tab = 1;
+    });
+  }
+
+  Future<void> _order(NotebookTemplate? template, double price) async {
+    final auth = ref.read(authControllerProvider);
+    if (!auth.isSignedIn) {
+      context.push('/login?next=/notebook');
+      return;
+    }
+    final delivery = await _askDelivery();
+    if (delivery == null || !mounted) return;
+
+    setState(() => _submitting = true);
+    try {
+      final png =
+          _coverArtPng ?? await _designerKey.currentState?.capturePng();
+      await ref.read(notebooksApiProvider).submitOrder(
+            templateId: template?.id,
+            coverColor:
+                '#${(_coverColor.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}',
+            ruling: _ruling,
+            binding: _binding,
+            pages: _pages,
+            nameOnCover: _nameController.text.trim(),
+            price: price,
+            designLayers: _layers.map((l) => l.toJson()).toList(),
+            photos: _layers.map((l) => l.bytes).toList(),
+            previewPng: png,
+            contactName: delivery.$1,
+            contactPhone: delivery.$2,
+            address: delivery.$3,
+            city: delivery.$4,
+          );
+      if (mounted) {
+        showSuccess(context, 'Order placed! We\'ll start printing soon.');
+        context.pop();
+      }
+    } catch (err) {
+      if (mounted) showError(context, err);
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  /// Collects (name, phone, address, city); null when dismissed.
+  Future<(String, String, String, String)?> _askDelivery() {
+    final name = TextEditingController(
+        text: ref.read(authControllerProvider).user?.name ?? '');
+    final phone = TextEditingController();
+    final address = TextEditingController();
+    final city = TextEditingController();
+    return showModalBottomSheet<(String, String, String, String)>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          left: AppTokens.s4,
+          right: AppTokens.s4,
+          top: AppTokens.s4,
+          bottom:
+              MediaQuery.of(sheetContext).viewInsets.bottom + AppTokens.s4,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Deliver to',
+                style: Theme.of(sheetContext).textTheme.titleLarge),
+            const SizedBox(height: AppTokens.s3),
+            TextField(
+                controller: name,
+                decoration: const InputDecoration(labelText: 'Name')),
+            const SizedBox(height: AppTokens.s2),
+            TextField(
+                controller: phone,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(labelText: 'Phone')),
+            const SizedBox(height: AppTokens.s2),
+            TextField(
+                controller: address,
+                decoration: const InputDecoration(labelText: 'Address')),
+            const SizedBox(height: AppTokens.s2),
+            TextField(
+                controller: city,
+                decoration: const InputDecoration(labelText: 'City')),
+            const SizedBox(height: AppTokens.s4),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                  backgroundColor: AppTokens.gold,
+                  foregroundColor: AppTokens.ink,
+                  minimumSize: const Size.fromHeight(54)),
+              onPressed: () {
+                if (phone.text.trim().isEmpty ||
+                    address.text.trim().isEmpty ||
+                    city.text.trim().isEmpty) {
+                  return; // required fields
+                }
+                Navigator.of(sheetContext).pop((
+                  name.text.trim(),
+                  phone.text.trim(),
+                  address.text.trim(),
+                  city.text.trim(),
+                ));
+              },
+              child: const Text('Confirm order'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -78,49 +208,86 @@ class _NotebookBuilderScreenState
           final template =
               _template ?? (templates.isNotEmpty ? templates.first : null);
           final price = _price(template);
-          final name = _nameController.text.trim();
 
           return ListView(
             padding: const EdgeInsets.all(AppTokens.s4),
             children: [
-              // Live preview
-              Center(
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  width: 200,
-                  height: 265,
-                  padding: const EdgeInsets.all(AppTokens.s4),
-                  decoration: BoxDecoration(
-                    color: _coverColor,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(AppTokens.radiusSm),
-                      topRight: Radius.circular(AppTokens.radiusLg),
-                      bottomRight: Radius.circular(AppTokens.radiusLg),
-                      bottomLeft: Radius.circular(AppTokens.radiusSm),
+              // Design ⟷ 3D preview switch
+              Row(
+                children: [
+                  Expanded(
+                    child: _TabPill(
+                      label: '🎨 Design',
+                      selected: _tab == 0,
+                      onTap: () => setState(() => _tab = 0),
                     ),
-                    border: const Border(
-                        left: BorderSide(color: Colors.black26, width: 10)),
-                    boxShadow: AppTokens.softShadow,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(template?.name ?? 'Classic',
-                          style: theme.textTheme.labelSmall
-                              ?.copyWith(color: Colors.white70)),
-                      Text(
-                        name.isEmpty ? 'Your name here' : name,
-                        style: theme.textTheme.titleMedium
-                            ?.copyWith(color: Colors.white),
-                      ),
-                      Text('$_pages pages · $_ruling · $_binding',
-                          style: theme.textTheme.labelSmall
-                              ?.copyWith(color: Colors.white70)),
-                    ],
+                  const SizedBox(width: AppTokens.s2),
+                  Expanded(
+                    child: _TabPill(
+                      label: '🧊 3D · 360°',
+                      selected: _tab == 1,
+                      onTap: _openPreview,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppTokens.s4),
+              if (_tab == 0) ...[
+                Center(
+                  child: SizedBox(
+                    width: 260,
+                    child: CoverDesigner(
+                      key: _designerKey,
+                      background: _coverColor,
+                      name: _nameController.text.trim(),
+                      badge: template?.name ?? 'Classic',
+                      layers: _layers,
+                      onChanged: () => setState(() {}),
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(height: AppTokens.s3),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        await _designerKey.currentState?.addPhoto();
+                        setState(() {});
+                      },
+                      icon: const Icon(Icons.add_photo_alternate_outlined),
+                      label: const Text('Add photo'),
+                    ),
+                    const SizedBox(width: AppTokens.s2),
+                    if (_designerKey.currentState?.hasSelection == true)
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          _designerKey.currentState?.removeSelected();
+                          setState(() {});
+                        },
+                        icon: const Icon(Icons.delete_outline),
+                        label: const Text('Remove'),
+                      ),
+                  ],
+                ),
+                Center(
+                  child: Text(
+                    'Tap a photo to select · drag to move · pinch to resize & rotate',
+                    style: theme.textTheme.labelSmall
+                        ?.copyWith(color: AppTokens.inkSoft),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ] else
+                SizedBox(
+                  height: 380,
+                  child: Notebook3DView(
+                    coverColor: _coverColor,
+                    showSpiral: _binding == 'spiral',
+                    coverArtPng: _coverArtPng,
+                  ),
+                ),
               const SizedBox(height: AppTokens.s5),
               if (templates.isNotEmpty) ...[
                 Text('1 · Template', style: theme.textTheme.titleMedium),
@@ -153,7 +320,7 @@ class _NotebookBuilderScreenState
                               shape: BoxShape.circle,
                               border: Border.all(
                                 color: _coverColor == entry.$1
-                                    ? AppTokens.primaryDark
+                                    ? AppTokens.ink
                                     : Colors.transparent,
                                 width: 3,
                               ),
@@ -197,7 +364,7 @@ class _NotebookBuilderScreenState
                 spacing: AppTokens.s2,
                 children: _bindings
                     .map((option) => ChoiceChip(
-                          label: Text(option),
+                          label: Text(option == 'spiral' ? '🌀 spiral' : option),
                           selected: _binding == option,
                           onSelected: (_) =>
                               setState(() => _binding = option),
@@ -226,21 +393,32 @@ class _NotebookBuilderScreenState
                               style: theme.textTheme.titleMedium),
                           Text(inr(price),
                               style: theme.textTheme.headlineSmall
-                                  ?.copyWith(color: AppTokens.primary)),
+                                  ?.copyWith(color: AppTokens.ink)),
                         ],
                       ),
+                      if (_layers.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: AppTokens.s1),
+                          child: Text(
+                            '${_layers.length} photo${_layers.length == 1 ? '' : 's'} on the cover · ₹20 each',
+                            style: theme.textTheme.labelSmall
+                                ?.copyWith(color: AppTokens.inkSoft),
+                          ),
+                        ),
                       const SizedBox(height: AppTokens.s3),
-                      // Backend has no notebook order-to-cart endpoint yet —
-                      // don't fake it.
-                      const FilledButton(
-                          onPressed: null,
-                          child: Text('Add to cart — coming soon')),
-                      const SizedBox(height: AppTokens.s2),
-                      Text(
-                        'Made-to-order checkout is almost ready. Your design and price preview are live!',
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant),
+                      FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppTokens.gold,
+                          foregroundColor: AppTokens.ink,
+                          minimumSize: const Size.fromHeight(54),
+                        ),
+                        onPressed: _submitting
+                            ? null
+                            : () => _order(template, price),
+                        icon: const Icon(Icons.auto_awesome),
+                        label: Text(_submitting
+                            ? 'Placing order…'
+                            : 'Order this notebook'),
                       ),
                     ],
                   ),
@@ -250,6 +428,37 @@ class _NotebookBuilderScreenState
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _TabPill extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _TabPill(
+      {required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? AppTokens.ink : AppTokens.surface,
+      shape: const StadiumBorder(),
+      child: InkWell(
+        customBorder: const StadiumBorder(),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppTokens.s3),
+          child: Center(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: selected ? Colors.white : AppTokens.ink),
+            ),
+          ),
+        ),
       ),
     );
   }

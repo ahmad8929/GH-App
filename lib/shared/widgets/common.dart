@@ -127,11 +127,14 @@ class AppPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // White and gold pills sit on photos/gradients and must stay opaque;
+    // tinted pills keep the soft translucent look on plain surfaces.
+    final solid = color == Colors.white || color == AppTokens.gold;
     return Container(
       padding: const EdgeInsets.symmetric(
           horizontal: AppTokens.s3, vertical: AppTokens.s1),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.35),
+        color: solid ? color : color.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(AppTokens.radiusPill),
       ),
       child: Text(
