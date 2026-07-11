@@ -3,7 +3,7 @@
     <!-- Dev backend is plain http (10.0.2.2:5000); tighten with a network
          security config before shipping to production. -->
     <application
-        android:label="Gyan Hub"
+        android:label="Gyaan Hub"
         android:name="${applicationName}"
         android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher">

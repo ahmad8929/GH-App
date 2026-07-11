@@ -19,7 +19,7 @@ final mySubmissionsProvider =
 });
 
 /// Sell/Donate intake: a pickup request — we collect, inspect, and list the
-/// item as Gyan Hub inventory. The submitter is never shown as a seller.
+/// item as Gyaan Hub inventory. The submitter is never shown as a seller.
 class SellbackScreen extends ConsumerWidget {
   const SellbackScreen({super.key});
 
@@ -330,7 +330,7 @@ class _SubmitFormState extends ConsumerState<_SubmitForm>
           ),
           const SizedBox(height: AppTokens.s2),
           Text(
-            'Our team reviews every request. Once collected and checked, items are listed by Gyan Hub — your name is never shown.',
+            'Our team reviews every request. Once collected and checked, items are listed by Gyaan Hub — your name is never shown.',
             style: theme.textTheme.bodySmall
                 ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),

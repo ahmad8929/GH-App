@@ -576,7 +576,7 @@ class BlogPost {
         cover: _s(json['cover']),
         excerpt: _s(json['excerpt']) ?? '',
         contentHtml: _s(json['contentHtml']) ?? '',
-        author: _s(json['author']) ?? 'Gyan Hub Team',
+        author: _s(json['author']) ?? 'Gyaan Hub Team',
         publishedAt: DateTime.tryParse(_s(json['publishedAt']) ?? ''),
       );
 }

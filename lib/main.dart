@@ -42,7 +42,7 @@ class _GyanHubAppState extends ConsumerState<GyanHubApp> {
   Widget build(BuildContext context) {
     final theme = ref.watch(selectedThemeProvider).asData?.value;
     return MaterialApp.router(
-      title: 'Gyan Hub',
+      title: 'Gyaan Hub',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(theme),
       routerConfig: router,

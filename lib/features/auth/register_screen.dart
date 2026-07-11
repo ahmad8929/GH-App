@@ -54,7 +54,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             userType: _userType,
           );
       if (!mounted) return;
-      showSuccess(context, 'Welcome to Gyan Hub, ${user.name.split(' ').first}! 🎒');
+      showSuccess(context, 'Welcome to Gyaan Hub, ${user.name.split(' ').first}! 🎒');
       context.go('/home');
     } catch (err) {
       setState(() => _error = err.toString());

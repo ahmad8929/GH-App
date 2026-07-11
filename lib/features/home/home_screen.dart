@@ -69,7 +69,7 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: AppTokens.s2),
-            const Text('Gyan Hub'),
+            const Text('Gyaan Hub'),
           ],
         ),
         actions: [

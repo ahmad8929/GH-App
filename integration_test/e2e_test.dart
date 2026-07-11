@@ -116,8 +116,8 @@ void main() {
     await tapAndSettle(
         tester, find.textContaining('E2E App Test Book').first);
 
-    // ---- Detail: sold by Gyan Hub, favorite toggle, add to cart ----
-    await waitFor(tester, find.text('Sold by Gyan Hub'));
+    // ---- Detail: sold by Gyaan Hub, favorite toggle, add to cart ----
+    await waitFor(tester, find.text('Sold by Gyaan Hub'));
     await tapAndSettle(tester, find.byIcon(Icons.favorite_border).first);
     await waitFor(tester, find.text('Saved to favorites'));
     await tapAndSettle(tester, find.text('Add to cart'));

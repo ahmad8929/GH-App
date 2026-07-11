@@ -13,7 +13,7 @@ final _themesListProvider =
   return res;
 });
 
-/// Lets a signed-in user pick a color theme for their own Gyan Hub app —
+/// Lets a signed-in user pick a color theme for their own Gyaan Hub app —
 /// stored on their profile via `PATCH /profile/me/theme`, re-applied on
 /// every device. Mirrors the Website's `/dashboard/theme` page.
 class ThemeScreen extends ConsumerStatefulWidget {
@@ -140,7 +140,7 @@ class _ThemePreview extends StatelessWidget {
               padding: const EdgeInsets.symmetric(
                   horizontal: AppTokens.s3, vertical: AppTokens.s2),
               color: AppTokens.hexToColor(theme.navbarColor),
-              child: Text('Gyan Hub',
+              child: Text('Gyaan Hub',
                   style: TextStyle(
                       color: AppTokens.hexToColor(theme.headingColor),
                       fontWeight: FontWeight.w700,

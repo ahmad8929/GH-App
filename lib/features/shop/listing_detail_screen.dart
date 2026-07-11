@@ -203,7 +203,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                     child: Image.asset('assets/images/logo.png',
                         width: 40, height: 40, fit: BoxFit.cover),
                   ),
-                  title: const Text('Sold by Gyan Hub'),
+                  title: const Text('Sold by Gyaan Hub'),
                   subtitle: const Text(
                       'Checked, approved, and delivered by our team.'),
                 ),

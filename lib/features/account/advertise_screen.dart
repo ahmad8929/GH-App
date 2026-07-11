@@ -44,7 +44,7 @@ class AdvertiseScreen extends ConsumerWidget {
         body: EmptyState(
           emoji: '📣',
           title: 'Reach thousands of school families',
-          body: 'Log in with your regular Gyan Hub account to buy an ad plan and submit your creative.',
+          body: 'Log in with your regular Gyaan Hub account to buy an ad plan and submit your creative.',
           ctaLabel: 'Login',
           onCta: () => context.push('/login?next=/advertise'),
         ),
@@ -79,7 +79,7 @@ class _AdvertiseBody extends ConsumerWidget {
             Text('Reach thousands of school families 📣', style: theme.textTheme.headlineSmall),
             const SizedBox(height: AppTokens.s2),
             Text(
-              'Advertise your coaching classes, bookstore, or school services right where parents and students already shop — using your regular Gyan Hub account.',
+              'Advertise your coaching classes, bookstore, or school services right where parents and students already shop — using your regular Gyaan Hub account.',
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: AppTokens.s5),
