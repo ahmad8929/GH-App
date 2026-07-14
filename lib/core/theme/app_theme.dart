@@ -6,6 +6,27 @@ import 'app_tokens.dart';
 
 Color _hex(String hex) => AppTokens.hexToColor(hex);
 
+/// Shrinks every piece of text by [AppTokens.scale], so type tightens along
+/// with the spacing/size tokens. It scales *on top of* the platform's own
+/// scaler rather than replacing it, which keeps the user's OS text-size
+/// accessibility setting working. Font sizes reach widgets from several places
+/// (the Material typography defaults, component themes, one-off `TextStyle`s),
+/// so scaling them here — at the point they're rendered — is the only way to
+/// catch all of them.
+class AppTextScaler extends TextScaler {
+  const AppTextScaler(this._platform);
+
+  final TextScaler _platform;
+
+  @override
+  double scale(double fontSize) => _platform.scale(fontSize * AppTokens.scale);
+
+  // Deprecated upstream but still abstract, so it has to be implemented.
+  @override
+  // ignore: deprecated_member_use
+  double get textScaleFactor => _platform.textScaleFactor * AppTokens.scale;
+}
+
 /// Material 3, light, friendly & rounded — Poppins for display, Nunito for body.
 ///
 /// When [t] is null (no theme selected, or a guest), every color resolves to
@@ -60,6 +81,7 @@ ThemeData buildAppTheme([ThemeOption? t]) {
     colorScheme: scheme,
     scaffoldBackgroundColor: background,
     textTheme: textTheme,
+    iconTheme: const IconThemeData(size: AppTokens.iconSize),
     appBarTheme: AppBarTheme(
       backgroundColor: navbarColor,
       foregroundColor: primaryDark,
@@ -77,7 +99,7 @@ ThemeData buildAppTheme([ThemeOption? t]) {
       style: FilledButton.styleFrom(
         backgroundColor: buttonBg,
         foregroundColor: buttonText,
-        minimumSize: const Size(0, 54),
+        minimumSize: const Size(0, 54 * AppTokens.scale),
         shape: const StadiumBorder(),
         textStyle: textTheme.labelLarge,
       ),
@@ -85,7 +107,7 @@ ThemeData buildAppTheme([ThemeOption? t]) {
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: primaryDark,
-        minimumSize: const Size(0, 54),
+        minimumSize: const Size(0, 54 * AppTokens.scale),
         side: BorderSide(color: AppTokens.ink.withValues(alpha: 0.15)),
         shape: const StadiumBorder(),
         textStyle: textTheme.labelLarge,
@@ -148,7 +170,7 @@ ThemeData buildAppTheme([ThemeOption? t]) {
       backgroundColor: t != null ? footerColor : AppTokens.surface,
       indicatorColor: AppTokens.ink,
       elevation: 0,
-      height: 68,
+      height: 68 * AppTokens.scale,
       labelTextStyle: WidgetStatePropertyAll(
           textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700)),
       iconTheme: WidgetStateProperty.resolveWith((states) => IconThemeData(

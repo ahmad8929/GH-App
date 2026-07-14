@@ -212,8 +212,8 @@ class _PlanCardState extends ConsumerState<_PlanCard> {
                       onPressed: _busy ? null : _confirmAndSubscribe,
                       child: _busy
                           ? const SizedBox(
-                              width: 18,
-                              height: 18,
+                              width: 18 * AppTokens.scale,
+                              height: 18 * AppTokens.scale,
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                           : const Text('Choose plan'),
                     ),
@@ -248,7 +248,7 @@ class _AdStepper extends StatelessWidget {
           child: Column(
             children: [
               Container(
-                  width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                  width: 10 * AppTokens.scale, height: 10 * AppTokens.scale, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
               const SizedBox(height: 4),
               Text(
                 isCurrent && rejected ? 'Rejected' : _steps[i],
@@ -283,7 +283,7 @@ class _ProgressBar extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: AppTokens.brSm,
-          child: LinearProgressIndicator(value: pct, minHeight: 6),
+          child: LinearProgressIndicator(value: pct, minHeight: 6 * AppTokens.scale),
         ),
         const SizedBox(height: 4),
         Text(daysLeft > 0 ? '$daysLeft day${daysLeft == 1 ? '' : 's'} left' : 'Ended',
@@ -358,8 +358,8 @@ class _SubscriptionCardState extends ConsumerState<_SubscriptionCard> {
                       borderRadius: AppTokens.brSm,
                       child: CachedNetworkImage(
                         imageUrl: ad.image,
-                        width: 80,
-                        height: 60,
+                        width: 80 * AppTokens.scale,
+                        height: 60 * AppTokens.scale,
                         fit: BoxFit.cover,
                         errorWidget: (_, _, _) => Container(
                             width: 80, height: 60, color: AppTokens.tint),
@@ -448,7 +448,7 @@ class _SubscriptionCardState extends ConsumerState<_SubscriptionCard> {
                 child: CachedNetworkImage(
                   imageUrl: ad.image,
                   width: double.infinity,
-                  height: 160,
+                  height: 160 * AppTokens.scale,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -615,8 +615,8 @@ class _AdFormState extends ConsumerState<_AdForm> {
               onPressed: _busy ? null : _submit,
               child: _busy
                   ? const SizedBox(
-                      width: 18,
-                      height: 18,
+                      width: 18 * AppTokens.scale,
+                      height: 18 * AppTokens.scale,
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                   : Text(existing == null ? 'Submit ad for review' : 'Resubmit for review'),
             ),

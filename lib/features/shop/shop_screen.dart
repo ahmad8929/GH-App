@@ -62,6 +62,15 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
       _categoryId = null;
       _load(reset: true);
     }
+    // Search deep-links from Home while the tab is alive. Without this, a
+    // second search (e.g. "pencil") updates the route but the field keeps the
+    // old query ("pen") because the Shop tab's State is reused, not rebuilt.
+    if (widget.initialSearch != old.initialSearch) {
+      _search = widget.initialSearch ?? '';
+      _searchController.text = _search;
+      _debounce?.cancel();
+      _load(reset: true);
+    }
   }
 
   @override
@@ -196,7 +205,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
             ),
           ),
           SizedBox(
-            height: 42,
+            height: 42 * AppTokens.scale,
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding:

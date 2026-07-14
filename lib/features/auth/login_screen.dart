@@ -75,7 +75,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       child: ClipRRect(
                         borderRadius: AppTokens.brMd,
                         child: Image.asset('assets/images/logo.png',
-                            width: 64, height: 64, fit: BoxFit.cover),
+                            width: 64 * AppTokens.scale, height: 64 * AppTokens.scale, fit: BoxFit.cover),
                       ),
                     ),
                     const SizedBox(height: AppTokens.s4),

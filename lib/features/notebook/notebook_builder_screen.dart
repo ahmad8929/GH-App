@@ -236,7 +236,7 @@ class _NotebookBuilderScreenState
               if (_tab == 0) ...[
                 Center(
                   child: SizedBox(
-                    width: 260,
+                    width: 260 * AppTokens.scale,
                     child: CoverDesigner(
                       key: _designerKey,
                       background: _coverColor,
@@ -281,7 +281,7 @@ class _NotebookBuilderScreenState
                 ),
               ] else
                 SizedBox(
-                  height: 380,
+                  height: 380 * AppTokens.scale,
                   child: Notebook3DView(
                     coverColor: _coverColor,
                     showSpiral: _binding == 'spiral',
@@ -313,8 +313,8 @@ class _NotebookBuilderScreenState
                     .map((entry) => GestureDetector(
                           onTap: () => setState(() => _coverColor = entry.$1),
                           child: Container(
-                            width: 40,
-                            height: 40,
+                            width: 40 * AppTokens.scale,
+                            height: 40 * AppTokens.scale,
                             decoration: BoxDecoration(
                               color: entry.$1,
                               shape: BoxShape.circle,
@@ -327,7 +327,7 @@ class _NotebookBuilderScreenState
                             ),
                             child: _coverColor == entry.$1
                                 ? const Icon(Icons.check,
-                                    color: Colors.white, size: 18)
+                                    color: Colors.white, size: 18 * AppTokens.scale)
                                 : null,
                           ),
                         ))

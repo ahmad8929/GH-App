@@ -28,20 +28,29 @@ class AppTokens {
   static const Color coral = Color(0xFFFF6F61);
   static const Color lavender = Color(0xFF8B7CF6);
 
+  /// Global UI scale. Every size below — plus the text theme's font sizes, the
+  /// default icon size, and the fixed dimensions in screens (all written as
+  /// `<base> * AppTokens.scale`) — is derived from this, so the whole UI can be
+  /// tightened or loosened from one number. 1.0 is the original design size.
+  static const double scale = 0.8;
+
   // Spacing scale
-  static const double s1 = 4;
-  static const double s2 = 8;
-  static const double s3 = 12;
-  static const double s4 = 16;
-  static const double s5 = 24;
-  static const double s6 = 32;
+  static const double s1 = 4 * scale;
+  static const double s2 = 8 * scale;
+  static const double s3 = 12 * scale;
+  static const double s4 = 16 * scale;
+  static const double s5 = 24 * scale;
+  static const double s6 = 32 * scale;
 
   // Corner radii — larger & rounder for the redesign.
-  static const double radiusSm = 12;
-  static const double radiusMd = 18;
-  static const double radiusLg = 24;
-  static const double radiusXl = 30;
+  static const double radiusSm = 12 * scale;
+  static const double radiusMd = 18 * scale;
+  static const double radiusLg = 24 * scale;
+  static const double radiusXl = 30 * scale;
   static const double radiusPill = 999;
+
+  /// Default icon size (Material's own default is 24).
+  static const double iconSize = 24 * scale;
 
   static BorderRadius get brSm => BorderRadius.circular(radiusSm);
   static BorderRadius get brMd => BorderRadius.circular(radiusMd);
@@ -51,8 +60,8 @@ class AppTokens {
   static List<BoxShadow> get softShadow => [
         BoxShadow(
           color: ink.withValues(alpha: 0.06),
-          blurRadius: 24,
-          offset: const Offset(0, 12),
+          blurRadius: 24 * scale,
+          offset: const Offset(0, 12 * scale),
         ),
       ];
 

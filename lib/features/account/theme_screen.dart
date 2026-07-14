@@ -56,7 +56,7 @@ class _ThemeScreenState extends ConsumerState<ThemeScreen> {
                 : () => _apply(null),
             child: _busyId == 'default'
                 ? const SizedBox(
-                    width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    width: 16 * AppTokens.scale, height: 16 * AppTokens.scale, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Text('Use default'),
           ),
         ],
@@ -102,8 +102,8 @@ class _ThemeScreenState extends ConsumerState<ThemeScreen> {
                                           : () => _apply(theme.id),
                                       child: busy
                                           ? const SizedBox(
-                                              width: 18,
-                                              height: 18,
+                                              width: 18 * AppTokens.scale,
+                                              height: 18 * AppTokens.scale,
                                               child: CircularProgressIndicator(
                                                   strokeWidth: 2, color: Colors.white))
                                           : const Text('Apply theme'),

@@ -102,7 +102,7 @@ class _AddToCartButton extends ConsumerWidget {
     final sold = listing.status == 'sold';
 
     return CircleIconButton(
-      size: 40,
+      size: 40 * AppTokens.scale,
       background: sold ? AppTokens.tint : AppTokens.gold,
       iconColor: AppTokens.ink,
       icon: inCart ? Icons.check_rounded : Icons.add_rounded,
@@ -154,7 +154,7 @@ class ListingCard extends StatelessWidget {
                   Positioned(
                     top: AppTokens.s2,
                     right: AppTokens.s2,
-                    child: FavoriteButton(listingId: listing.id, size: 34),
+                    child: FavoriteButton(listingId: listing.id, size: 34 * AppTokens.scale),
                   ),
                   if (listing.isFeatured)
                     const Positioned(

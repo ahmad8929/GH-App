@@ -106,7 +106,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                 child: Column(
                   children: [
                     CircleAvatar(
-                      radius: 44,
+                      radius: 44 * AppTokens.scale,
                       backgroundColor: AppTokens.primary,
                       foregroundImage: profile.profile?.avatar != null
                           ? NetworkImage(profile.profile!.avatar!)

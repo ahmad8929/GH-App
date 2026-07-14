@@ -46,6 +46,13 @@ class _GyanHubAppState extends ConsumerState<GyanHubApp> {
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(theme),
       routerConfig: router,
+      builder: (context, child) {
+        final media = MediaQuery.of(context);
+        return MediaQuery(
+          data: media.copyWith(textScaler: AppTextScaler(media.textScaler)),
+          child: child!,
+        );
+      },
     );
   }
 }

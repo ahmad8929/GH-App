@@ -109,8 +109,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                         ClipRRect(
                                           borderRadius: AppTokens.brSm,
                                           child: SizedBox(
-                                            width: 52,
-                                            height: 52,
+                                            width: 52 * AppTokens.scale,
+                                            height: 52 * AppTokens.scale,
                                             child:
                                                 ListingImage(listing: listing),
                                           ),

@@ -54,16 +54,27 @@ class ShopCategory {
   final String label;
   final String emoji;
   final List<String> hints;
-  const ShopCategory(this.slug, this.label, this.emoji, this.hints);
+
+  /// One-line copy shown on the categories page.
+  final String blurb;
+
+  const ShopCategory(this.slug, this.label, this.emoji, this.hints,
+      {this.blurb = ''});
 }
 
 const shopCategories = <ShopCategory>[
-  ShopCategory('old-books', 'Old Books', '📚', ['old-book', 'old book', 'used book']),
-  ShopCategory('new-books', 'New Books', '📖', ['new-book', 'new book']),
-  ShopCategory('uniforms', 'Uniforms', '👕', ['uniform']),
-  ShopCategory('stationery', 'Stationery', '✏️', ['stationery', 'stationary']),
-  ShopCategory('corporate', 'Corporate Bulk', '🏢', ['corporate', 'bulk']),
-  ShopCategory('custom-notebooks', 'Custom Notebook', '📒', ['custom', 'notebook']),
+  ShopCategory('old-books', 'Old Books', '📚', ['old-book', 'old book', 'used book'],
+      blurb: 'Gently used textbooks at a fraction of the price'),
+  ShopCategory('new-books', 'New Books', '📖', ['new-book', 'new book'],
+      blurb: 'Fresh copies straight from the publisher'),
+  ShopCategory('uniforms', 'Uniforms', '👕', ['uniform'],
+      blurb: 'School and college uniforms in every size'),
+  ShopCategory('stationery', 'Stationery', '✏️', ['stationery', 'stationary'],
+      blurb: 'Pens, files, geometry boxes and daily supplies'),
+  ShopCategory('corporate', 'Corporate Bulk', '🏢', ['corporate', 'bulk'],
+      blurb: 'Bulk pricing tiers for offices and institutions'),
+  ShopCategory('custom-notebooks', 'Custom Notebook', '📒', ['custom', 'notebook'],
+      blurb: 'Design your own cover and build it in 3D'),
 ];
 
 final categoryOptionsProvider = FutureProvider<List<CategoryRef>>((ref) async {

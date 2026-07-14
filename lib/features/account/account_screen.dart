@@ -54,7 +54,7 @@ class AccountScreen extends ConsumerWidget {
             child: ListTile(
               onTap: () => context.push('/profile-edit'),
               leading: CircleAvatar(
-                radius: 26,
+                radius: 26 * AppTokens.scale,
                 backgroundColor: AppTokens.primary,
                 foregroundImage: user.avatar != null
                     ? CachedNetworkImageProvider(user.avatar!)

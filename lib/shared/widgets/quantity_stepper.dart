@@ -118,8 +118,8 @@ class _RoundButton extends StatelessWidget {
         customBorder: const CircleBorder(),
         onTap: enabled ? onTap : null,
         child: SizedBox(
-          width: 32,
-          height: 32,
+          width: 32 * AppTokens.scale,
+          height: 32 * AppTokens.scale,
           child: Icon(icon,
               size: 18, color: enabled ? Colors.white : AppTokens.inkSoft),
         ),

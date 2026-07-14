@@ -82,8 +82,8 @@ class OrderDetailScreen extends ConsumerWidget {
                           leading: ClipRRect(
                             borderRadius: AppTokens.brSm,
                             child: SizedBox(
-                              width: 48,
-                              height: 48,
+                              width: 48 * AppTokens.scale,
+                              height: 48 * AppTokens.scale,
                               child: item.listingImage != null
                                   ? CachedNetworkImage(
                                       imageUrl: item.listingImage!,

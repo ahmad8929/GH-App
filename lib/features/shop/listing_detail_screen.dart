@@ -106,7 +106,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
               if (listing.images.length > 1) ...[
                 const SizedBox(height: AppTokens.s2),
                 SizedBox(
-                  height: 60,
+                  height: 60 * AppTokens.scale,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: listing.images.length,
@@ -128,8 +128,8 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                           borderRadius: AppTokens.brSm,
                           child: CachedNetworkImage(
                             imageUrl: listing.images[index],
-                            width: 60,
-                            height: 60,
+                            width: 60 * AppTokens.scale,
+                            height: 60 * AppTokens.scale,
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -201,7 +201,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                   leading: ClipRRect(
                     borderRadius: AppTokens.brSm,
                     child: Image.asset('assets/images/logo.png',
-                        width: 40, height: 40, fit: BoxFit.cover),
+                        width: 40 * AppTokens.scale, height: 40 * AppTokens.scale, fit: BoxFit.cover),
                   ),
                   title: const Text('Sold by Gyan Hub'),
                   subtitle: const Text(

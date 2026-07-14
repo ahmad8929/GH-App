@@ -21,6 +21,7 @@ import 'features/home/home_screen.dart';
 import 'features/notebook/notebook_builder_screen.dart';
 import 'features/sellback/sellback_screen.dart';
 import 'features/shell/app_shell.dart';
+import 'features/shop/categories_screen.dart';
 import 'features/shop/listing_detail_screen.dart';
 import 'features/shop/shop_screen.dart';
 
@@ -70,6 +71,10 @@ GoRouter buildRouter() => GoRouter(
             path: '/forgot-password',
             parentNavigatorKey: rootNavigatorKey,
             builder: (_, _) => const ForgotPasswordScreen()),
+        GoRoute(
+            path: '/categories',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (_, _) => const CategoriesScreen()),
         GoRoute(
             path: '/listing/:id',
             parentNavigatorKey: rootNavigatorKey,
