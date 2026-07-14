@@ -79,7 +79,7 @@ class ApiClient {
         options: Options(method: method),
       );
     } on DioException catch (err) {
-      throw ApiException(0, 'Cannot reach the Gyan Hub server ($err)');
+      throw ApiException(0, 'Cannot reach the Gyaan Hub server ($err)');
     }
 
     final status = response.statusCode ?? 0;

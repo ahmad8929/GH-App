@@ -50,7 +50,7 @@ class _FakeBlogsApi implements BlogsApi {
 
 void main() {
   testWidgets(
-      '"Gyan Hub" renders ~20% bigger than an equivalent default AppBar title',
+      '"Gyaan Hub" renders ~20% bigger than an equivalent default AppBar title',
       (tester) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -67,10 +67,10 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    final brandSize = tester.getSize(find.text('Gyan Hub'));
+    final brandSize = tester.getSize(find.text('Gyaan Hub'));
 
     // Categories' AppBar title uses plain default title styling — the same
-    // styling "Gyan Hub" had before this change — so it's the "no brand
+    // styling "Gyaan Hub" had before this change — so it's the "no brand
     // scaling" baseline. Scope to the AppBar since the same words also show
     // up as Home's (unrelated, differently-styled) section header.
     await tester.tap(find.text('View All'));

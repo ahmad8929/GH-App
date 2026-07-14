@@ -26,7 +26,7 @@ class AccountScreen extends ConsumerWidget {
         appBar: AppBar(title: const Text('Account')),
         body: EmptyState(
           emoji: '🎒',
-          title: 'Join the Gyan Hub club',
+          title: 'Join the Gyaan Hub club',
           body:
               'One account for shopping, orders, favorites, selling back, and donating.',
           ctaLabel: 'Login',

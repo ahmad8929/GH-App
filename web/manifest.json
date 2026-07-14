@@ -1,11 +1,11 @@
 {
-    "name": "Gyan Hub",
-    "short_name": "Gyan Hub",
+    "name": "Gyaan Hub",
+    "short_name": "Gyaan Hub",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#1e56a0",
-    "description": "Gyan Hub — the friendly school store.",
+    "description": "Gyaan Hub — the friendly school store.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

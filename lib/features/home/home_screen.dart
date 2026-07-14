@@ -11,7 +11,7 @@ import '../../state/auth_state.dart';
 import '../../state/cart_state.dart';
 import '../../state/providers.dart';
 
-/// The "Gyan Hub" wordmark + logo run 20% bigger than the rest of the app bar.
+/// The "Gyaan Hub" wordmark + logo run 20% bigger than the rest of the app bar.
 const _brandScale = 1.2;
 
 /// Multiplies whatever text scaling is already in effect (the app-wide 0.8x
@@ -100,13 +100,13 @@ class HomeScreen extends ConsumerWidget {
             ),
             const SizedBox(width: AppTokens.s2),
             // Composes on top of the app-wide text scaler (rather than a
-            // hardcoded fontSize) so "Gyan Hub" comes out exactly 20% bigger
+            // hardcoded fontSize) so "Gyaan Hub" comes out exactly 20% bigger
             // than the AppBar's default title size, whatever that resolves to.
             MediaQuery(
               data: media.copyWith(
                 textScaler: _RelativeTextScaler(_brandScale, media.textScaler),
               ),
-              child: const Text('Gyan Hub'),
+              child: const Text('Gyaan Hub'),
             ),
           ],
         ),
