@@ -12,8 +12,6 @@ import 'features/account/theme_screen.dart';
 import 'features/auth/forgot_password_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/register_screen.dart';
-import 'features/blogs/blog_detail_screen.dart';
-import 'features/blogs/blogs_screen.dart';
 import 'features/cart/cart_screen.dart';
 import 'features/cart/checkout_screen.dart';
 import 'features/cart/order_success_screen.dart';
@@ -93,15 +91,6 @@ GoRouter buildRouter() => GoRouter(
             path: '/notebook',
             parentNavigatorKey: rootNavigatorKey,
             builder: (_, _) => const NotebookBuilderScreen()),
-        GoRoute(
-            path: '/blogs',
-            parentNavigatorKey: rootNavigatorKey,
-            builder: (_, _) => const BlogsScreen()),
-        GoRoute(
-            path: '/blogs/:slug',
-            parentNavigatorKey: rootNavigatorKey,
-            builder: (_, state) =>
-                BlogDetailScreen(slug: state.pathParameters['slug']!)),
         GoRoute(
             path: '/orders',
             parentNavigatorKey: rootNavigatorKey,

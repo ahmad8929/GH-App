@@ -39,15 +39,6 @@ class _FakeAdsApi implements AdsApi {
   Future<void> click(String id) async {}
 }
 
-class _FakeBlogsApi implements BlogsApi {
-  @override
-  Future<Paginated<BlogPost>> list({int page = 1}) async =>
-      const Paginated<BlogPost>(data: [], pagination: Pagination.empty);
-
-  @override
-  Future<BlogPost> bySlug(String slug) => throw UnimplementedError();
-}
-
 void main() {
   testWidgets(
       '"Gyaan Hub" renders ~20% bigger than an equivalent default AppBar title',
@@ -61,7 +52,6 @@ void main() {
         tokenStoreProvider.overrideWithValue(TokenStore()),
         listingsApiProvider.overrideWithValue(_FakeListingsApi()),
         adsApiProvider.overrideWithValue(_FakeAdsApi()),
-        blogsApiProvider.overrideWithValue(_FakeBlogsApi()),
       ],
       child: MaterialApp.router(routerConfig: buildRouter()),
     ));

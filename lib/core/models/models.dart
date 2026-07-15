@@ -551,36 +551,6 @@ class SellbackRequest {
       );
 }
 
-class BlogPost {
-  final String slug;
-  final String title;
-  final String? cover;
-  final String excerpt;
-  final String contentHtml;
-  final String author;
-  final DateTime? publishedAt;
-
-  const BlogPost({
-    required this.slug,
-    required this.title,
-    this.cover,
-    required this.excerpt,
-    required this.contentHtml,
-    required this.author,
-    this.publishedAt,
-  });
-
-  factory BlogPost.fromJson(Map<String, dynamic> json) => BlogPost(
-        slug: (json['slug'] ?? '') as String,
-        title: (json['title'] ?? '') as String,
-        cover: _s(json['cover']),
-        excerpt: _s(json['excerpt']) ?? '',
-        contentHtml: _s(json['contentHtml']) ?? '',
-        author: _s(json['author']) ?? 'Gyaan Hub Team',
-        publishedAt: DateTime.tryParse(_s(json['publishedAt']) ?? ''),
-      );
-}
-
 class AdCreative {
   final String id;
   final String image;

@@ -81,7 +81,6 @@ class AccountScreen extends ConsumerWidget {
             (Icons.notifications_outlined, 'Notifications', '/notifications'),
             (Icons.campaign_outlined, 'Advertise with us', '/advertise'),
             (Icons.palette_outlined, 'Theme', '/theme'),
-            (Icons.article_outlined, 'Blog', '/blogs'),
           ].map((entry) => Card(
                 margin: const EdgeInsets.only(bottom: AppTokens.s2),
                 child: ListTile(

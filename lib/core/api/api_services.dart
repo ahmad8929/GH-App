@@ -401,21 +401,6 @@ class ThemesApi {
   }
 }
 
-class BlogsApi {
-  BlogsApi(this._client);
-  final ApiClient _client;
-
-  Future<Paginated<BlogPost>> list({int page = 1}) async {
-    final res = await _client.get('/blogs', query: {'page': page});
-    return _paginated(res, BlogPost.fromJson);
-  }
-
-  Future<BlogPost> bySlug(String slug) async {
-    final res = await _client.get('/blogs/$slug');
-    return BlogPost.fromJson(res['data'] as Map<String, dynamic>);
-  }
-}
-
 class NotebooksApi {
   NotebooksApi(this._client);
   final ApiClient _client;

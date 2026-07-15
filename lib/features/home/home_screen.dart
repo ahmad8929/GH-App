@@ -49,15 +49,6 @@ final _newestProvider = FutureProvider<List<Listing>>((ref) async {
   return res.data;
 });
 
-final _blogTeasersProvider = FutureProvider<List<BlogPost>>((ref) async {
-  try {
-    final res = await ref.watch(blogsApiProvider).list();
-    return res.data.take(3).toList();
-  } catch (_) {
-    return const [];
-  }
-});
-
 final announcementsProvider = FutureProvider<List<Announcement>>((ref) async {
   final auth = ref.watch(authControllerProvider);
   if (!auth.isSignedIn) return const [];
@@ -79,7 +70,6 @@ class HomeScreen extends ConsumerWidget {
     final auth = ref.watch(authControllerProvider);
     final featured = ref.watch(_featuredProvider);
     final newest = ref.watch(_newestProvider);
-    final blogs = ref.watch(_blogTeasersProvider);
     final cartCount =
         ref.watch(cartControllerProvider.select((cart) => cart.count));
 
@@ -134,7 +124,6 @@ class HomeScreen extends ConsumerWidget {
         onRefresh: () async {
           ref.invalidate(_featuredProvider);
           ref.invalidate(_newestProvider);
-          ref.invalidate(_blogTeasersProvider);
           ref.invalidate(announcementsProvider);
         },
         child: ListView(
@@ -185,35 +174,6 @@ class HomeScreen extends ConsumerWidget {
                       title: 'The shelves are being stocked',
                       body: 'New items appear as soon as they are approved.')
                   : _ListingRow(title: 'New in the store', listings: listings),
-            ),
-            blogs.maybeWhen(
-              data: (posts) => posts.isEmpty
-                  ? const SizedBox.shrink()
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SectionHeader('From the blog',
-                            actionLabel: 'All articles',
-                            onAction: () => context.push('/blogs')),
-                        ...posts.map((post) => Card(
-                              margin:
-                                  const EdgeInsets.only(bottom: AppTokens.s3),
-                              child: ListTile(
-                                onTap: () =>
-                                    context.push('/blogs/${post.slug}'),
-                                title: Text(post.title,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis),
-                                subtitle: Text(post.excerpt,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis),
-                                trailing:
-                                    const Icon(Icons.chevron_right_rounded),
-                              ),
-                            )),
-                      ],
-                    ),
-              orElse: () => const SizedBox.shrink(),
             ),
             const SizedBox(height: AppTokens.s4),
           ],

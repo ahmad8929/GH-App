@@ -41,15 +41,6 @@ class _FakeAdsApi implements AdsApi {
   Future<void> click(String id) async {}
 }
 
-class _FakeBlogsApi implements BlogsApi {
-  @override
-  Future<Paginated<BlogPost>> list({int page = 1}) async =>
-      const Paginated<BlogPost>(data: [], pagination: Pagination.empty);
-
-  @override
-  Future<BlogPost> bySlug(String slug) => throw UnimplementedError();
-}
-
 void main() {
   testWidgets('Home "View All" opens the categories page, not search',
       (tester) async {
@@ -69,7 +60,6 @@ void main() {
         tokenStoreProvider.overrideWithValue(TokenStore()),
         listingsApiProvider.overrideWithValue(_FakeListingsApi()),
         adsApiProvider.overrideWithValue(_FakeAdsApi()),
-        blogsApiProvider.overrideWithValue(_FakeBlogsApi()),
       ],
       child: MaterialApp.router(routerConfig: buildRouter()),
     ));

@@ -208,13 +208,6 @@ void main() {
     expect(find.text('Add to cart — coming soon'), findsOneWidget);
     await tapAndSettle(tester, find.byType(BackButton).first);
 
-    // ---- Blog teaser → article ----
-    await waitFor(tester, find.text('From the blog'));
-    await tapAndSettle(
-        tester, find.textContaining('Parity Pass').first);
-    await waitFor(tester, find.byType(BackButton).first);
-    await tapAndSettle(tester, find.byType(BackButton).first);
-
     // ---- Notification center loads ----
     await tapAndSettle(tester, find.byIcon(Icons.notifications_outlined));
     await waitFor(tester, find.text('Notifications'));
